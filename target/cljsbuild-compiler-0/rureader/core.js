@@ -1,0 +1,26 @@
+// Compiled by ClojureScript 0.0-2371
+goog.provide('rureader.core');
+goog.require('cljs.core');
+goog.require('clojure.string');
+goog.require('clojure.string');
+rureader.core.get_by_id = (function get_by_id(x){return document.getElementById(x);
+});
+rureader.core.multitran = (function multitran(word){return ("http://www.multitran.ru/c/m.exe?CL=1&s="+cljs.core.str.cljs$core$IFn$_invoke$arity$1(word)+"&l1=1");
+});
+rureader.core.lingvo = (function lingvo(word){return ("http://www.lingvo-online.ru/ru/Translate/ru-en/"+cljs.core.str.cljs$core$IFn$_invoke$arity$1(word));
+});
+rureader.core.forvo = (function forvo(word){return ("http://www.forvo.com/word/"+cljs.core.str.cljs$core$IFn$_invoke$arity$1(word)+"/#ru");
+});
+rureader.core.yandex = (function yandex(word){return ("http://slovari.yandex.ru/"+cljs.core.str.cljs$core$IFn$_invoke$arity$1(word)+"/\u043F\u0435\u0440\u0435\u0432\u043E\u0434/");
+});
+rureader.core.gramota = (function gramota(word){return ("http://gramota.ru/slovari/dic/?word="+cljs.core.str.cljs$core$IFn$_invoke$arity$1(word)+"&all=x");
+});
+rureader.core.wrap_word = (function wrap_word(word){return ("<span id=\"word\" \n        onClick=\"rureader.core.lookup_word(this.innerHTML)\">"+cljs.core.str.cljs$core$IFn$_invoke$arity$1(word)+"</span>");
+});
+rureader.core.lookup_word = (function lookup_word(word){rureader.core.get_by_id.call(null,"dic1").src = rureader.core.yandex.call(null,word);
+return rureader.core.get_by_id.call(null,"dic2").src = rureader.core.multitran.call(null,word);
+});
+rureader.core.prepare = (function prepare(text){return clojure.string.replace.call(null,clojure.string.replace.call(null,text,/[а-яА-ЯЁё][а-яА-ЯЁё-]*/,rureader.core.wrap_word),/\n\n+/,"<br>");
+});
+rureader.core.display_text = (function display_text(){var text = rureader.core.prepare.call(null,rureader.core.get_by_id.call(null,"inputbox").value);return rureader.core.get_by_id.call(null,"textregion").innerHTML = text;
+});
