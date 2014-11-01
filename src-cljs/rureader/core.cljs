@@ -32,7 +32,7 @@
 (defn prepare [text]
   (-> text
       (cstr/replace #"[а-яА-ЯЁё][а-яА-ЯЁё-]*" wrap-word)
-      (cstr/replace #"\n\n+" "<br>")))
+      (cstr/replace #"\n\n+" "<br><br>")))
 
 (defn display-text []
   (let [text (-> (get-by-id "inputbox") .-value prepare)]

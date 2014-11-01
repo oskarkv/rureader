@@ -20,7 +20,7 @@ rureader.core.wrap_word = (function wrap_word(word){return ("<span id=\"word\" \
 rureader.core.lookup_word = (function lookup_word(word){rureader.core.get_by_id.call(null,"dic1").src = rureader.core.yandex.call(null,word);
 return rureader.core.get_by_id.call(null,"dic2").src = rureader.core.multitran.call(null,word);
 });
-rureader.core.prepare = (function prepare(text){return clojure.string.replace.call(null,clojure.string.replace.call(null,text,/[а-яА-ЯЁё][а-яА-ЯЁё-]*/,rureader.core.wrap_word),/\n\n+/,"<br>");
+rureader.core.prepare = (function prepare(text){return clojure.string.replace.call(null,clojure.string.replace.call(null,text,/[а-яА-ЯЁё][а-яА-ЯЁё-]*/,rureader.core.wrap_word),/\n\n+/,"<br><br>");
 });
 rureader.core.display_text = (function display_text(){var text = rureader.core.prepare.call(null,rureader.core.get_by_id.call(null,"inputbox").value);return rureader.core.get_by_id.call(null,"textregion").innerHTML = text;
 });

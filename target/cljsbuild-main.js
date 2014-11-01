@@ -27122,7 +27122,7 @@ rureader.core.lookup_word = function lookup_word(word) {
   return rureader.core.get_by_id.call(null, "dic2").src = rureader.core.multitran.call(null, word);
 };
 rureader.core.prepare = function prepare(text) {
-  return clojure.string.replace.call(null, clojure.string.replace.call(null, text, /[\u0430-\u044f\u0410-\u042f\u0401\u0451][\u0430-\u044f\u0410-\u042f\u0401\u0451-]*/, rureader.core.wrap_word), /\n\n+/, "\x3cbr\x3e");
+  return clojure.string.replace.call(null, clojure.string.replace.call(null, text, /[\u0430-\u044f\u0410-\u042f\u0401\u0451][\u0430-\u044f\u0410-\u042f\u0401\u0451-]*/, rureader.core.wrap_word), /\n\n+/, "\x3cbr\x3e\x3cbr\x3e");
 };
 rureader.core.display_text = function display_text() {
   var text = rureader.core.prepare.call(null, rureader.core.get_by_id.call(null, "inputbox").value);
