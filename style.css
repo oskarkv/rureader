@@ -1,0 +1,52 @@
+body {
+    font-family: 'Droid Serif', serif;
+}
+
+#leftside {
+    width: 30%;
+    height: 100%;
+}
+
+.inputclass {
+    vertical-align: middle;
+}
+
+#enter {
+    font-size: 20px;
+}
+
+#inputbox {
+    width: 200px;
+    height: 100px;
+}
+
+#textregion {
+    padding: 10px 0px;
+    font-size: 16px;
+}
+
+#dics {
+    width: 70%;
+    height: 100%;
+    position: fixed;
+    right: 0;
+    top: 0;
+}
+
+#dic1div, #dic2div {
+    height: 100%;
+    float: left;
+}
+
+#dic1div {
+    width: 40%;
+}
+
+#dic2div {
+    width: 60%;
+}
+
+#dic1, #dic2 {
+    width: 100%;
+    height: 100%;
+}

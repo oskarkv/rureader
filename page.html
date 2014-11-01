@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+<meta charset="utf-8"/>
+<title>Rureader</title>
+<script type="text/javascript" src="target/cljsbuild-main.js" ></script>
+<link rel="stylesheet" type="text/css" href="style.css">
+<link href='http://fonts.googleapis.com/css?family=Droid+Serif' rel='stylesheet' type='text/css'>
+</head>
+<body>
+<div id="leftside">
+    <section id="inputsection">
+        <span class="inputclass" id="enter">
+            Enter text:
+        </span>
+        <textarea id="inputbox" class="inputclass"></textarea>
+        <button id="button" class="inputclass" onClick="rureader.core.display_text()">давай!</button>
+    </section>
+    <section id="textregion">
+    </section>
+</div>
+<section id="dics">
+    <div id="dic1div">
+        <iframe id="dic1" src=""></iframe>
+    </div>
+    <div id="dic2div">
+        <iframe sandbox id="dic2" src=""></iframe>
+    </div> 
+</section>
+</body>
+</html>
