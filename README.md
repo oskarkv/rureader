@@ -14,4 +14,4 @@ How to Install and Run
 1. Download the zip here. ---->
 2. Download a browser extension of your choice that ignores `x-frame-options`.
    (This allows you to put all pages in a frame.)
-2. Click page.html to start.
+3. Click `page.html` to start.
