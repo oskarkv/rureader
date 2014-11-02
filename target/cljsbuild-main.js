@@ -27119,7 +27119,8 @@ rureader.core.wrap_word = function wrap_word(word) {
 };
 rureader.core.lookup_word = function lookup_word(word) {
   rureader.core.get_by_id.call(null, "dic1").src = rureader.core.yandex.call(null, word);
-  return rureader.core.get_by_id.call(null, "dic2").src = rureader.core.multitran.call(null, word);
+  rureader.core.get_by_id.call(null, "dic2").src = rureader.core.multitran.call(null, word);
+  return rureader.core.get_by_id.call(null, "dic3").src = rureader.core.forvo.call(null, word);
 };
 rureader.core.prepare = function prepare(text) {
   return clojure.string.replace.call(null, clojure.string.replace.call(null, text, /[\u0430-\u044f\u0410-\u042f\u0401\u0451][\u0430-\u044f\u0410-\u042f\u0401\u0451-]*/, rureader.core.wrap_word), /\n\n+/, "\x3cbr\x3e\x3cbr\x3e");

@@ -27,7 +27,8 @@
 
 (defn lookup-word [word]
   (set! (.-src (get-by-id "dic1")) (yandex word))
-  (set! (.-src (get-by-id "dic2")) (multitran word)))
+  (set! (.-src (get-by-id "dic2")) (multitran word))
+  (set! (.-src (get-by-id "dic3")) (forvo word)))
 
 (defn prepare [text]
   (-> text
