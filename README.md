@@ -1,7 +1,7 @@
 rureader
 ========
 
-![Sceenshot](http://i.imgur.com/NEVWo8K.jpg?1)
+![Sceenshot](http://i.imgur.com/k1gAoXj.jpg?1)
 
 How to Use
 ----------
