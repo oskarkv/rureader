@@ -21,8 +21,8 @@ body {
 }
 
 #textregion {
-    padding: 10px 0px;
-    font-size: 16px;
+    padding: 20px 0px;
+    font-size: 18px;
 }
 
 #dics {
@@ -49,4 +49,9 @@ body {
 #dic1, #dic2 {
     width: 100%;
     height: 100%;
+}
+
+#dic3 {
+    width: 100%;
+    height: 50%;
 }
