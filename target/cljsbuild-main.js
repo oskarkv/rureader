@@ -26893,6 +26893,3500 @@ cljs.core.special_symbol_QMARK_ = function special_symbol_QMARK_(x) {
   "letfn*", "letfn*", -110097810, null), null, new cljs.core.Symbol(null, "if", "if", 1181717262, null), null, new cljs.core.Symbol(null, "new", "new", -444906321, null), null, new cljs.core.Symbol(null, "ns", "ns", 2082130287, null), null, new cljs.core.Symbol(null, "deftype*", "deftype*", 962659890, null), null, new cljs.core.Symbol(null, "let*", "let*", 1920721458, null), null, new cljs.core.Symbol(null, "js*", "js*", -1134233646, null), null, new cljs.core.Symbol(null, "fn*", "fn*", -752876845, 
   null), null, new cljs.core.Symbol(null, "recur", "recur", 1202958259, null), null, new cljs.core.Symbol(null, "set!", "set!", 250714521, null), null, new cljs.core.Symbol(null, ".", ".", 1975675962, null), null, new cljs.core.Symbol(null, "quote", "quote", 1377916282, null), null, new cljs.core.Symbol(null, "throw", "throw", 595905694, null), null, new cljs.core.Symbol(null, "def", "def", 597100991, null), null], null), null), x);
 };
+goog.provide("com.cognitect.transit.util");
+goog.require("goog.object");
+goog.scope(function() {
+  var util = com.cognitect.transit.util, gobject = goog.object;
+  if (typeof Object.keys != "undefined") {
+    util.objectKeys = function(obj) {
+      return Object.keys(obj);
+    };
+  } else {
+    util.objectKeys = function(obj) {
+      return gobject.getKeys(obj);
+    };
+  }
+  if (typeof Array.isArray != "undefined") {
+    util.isArray = function(obj) {
+      return Array.isArray(obj);
+    };
+  } else {
+    util.isArray = function(obj) {
+      return goog.typeOf(obj) === "array";
+    };
+  }
+  util.randInt = function(ub) {
+    return Math.round(Math.random() * ub);
+  };
+  util.randHex = function() {
+    return util.randInt(15).toString(16);
+  };
+  util.randomUUID = function() {
+    var rhex = (8 | 3 & util.randInt(14)).toString(16), ret = util.randHex() + util.randHex() + util.randHex() + util.randHex() + util.randHex() + util.randHex() + util.randHex() + util.randHex() + "-" + util.randHex() + util.randHex() + util.randHex() + util.randHex() + "-" + "4" + util.randHex() + util.randHex() + util.randHex() + "-" + rhex + util.randHex() + util.randHex() + util.randHex() + "-" + util.randHex() + util.randHex() + util.randHex() + util.randHex() + util.randHex() + util.randHex() + 
+    util.randHex() + util.randHex() + util.randHex() + util.randHex() + util.randHex() + util.randHex();
+    return ret;
+  };
+});
+goog.provide("com.cognitect.transit.eq");
+goog.require("com.cognitect.transit.util");
+goog.scope(function() {
+  var eq = com.cognitect.transit.eq, util = com.cognitect.transit.util;
+  eq.equals = function(x, y) {
+    if (x == null) {
+      return y == null;
+    } else {
+      if (x === y) {
+        return true;
+      } else {
+        if (typeof x === "object") {
+          if (util.isArray(x)) {
+            if (util.isArray(y)) {
+              if (x.length === y.length) {
+                for (var i = 0;i < x.length;i++) {
+                  if (!eq.equals(x[i], y[i])) {
+                    return false;
+                  }
+                }
+                return true;
+              } else {
+                return false;
+              }
+            } else {
+              return false;
+            }
+          } else {
+            if (x.com$cognitect$transit$equals) {
+              return x.com$cognitect$transit$equals(y);
+            } else {
+              if (y != null && typeof y === "object") {
+                if (y.com$cognitect$transit$equals) {
+                  return y.com$cognitect$transit$equals(x);
+                } else {
+                  var xklen = 0, yklen = util.objectKeys(y).length;
+                  for (var p in x) {
+                    if (!x.hasOwnProperty(p)) {
+                      continue;
+                    }
+                    xklen++;
+                    if (!y.hasOwnProperty(p)) {
+                      return false;
+                    } else {
+                      if (!eq.equals(x[p], y[p])) {
+                        return false;
+                      }
+                    }
+                  }
+                  return xklen === yklen;
+                }
+              } else {
+                return false;
+              }
+            }
+          }
+        } else {
+          return false;
+        }
+      }
+    }
+  };
+  eq.hashCombine = function(seed, hash) {
+    return seed ^ hash + 2654435769 + (seed << 6) + (seed >> 2);
+  };
+  eq.stringCodeCache = {};
+  eq.stringCodeCacheSize = 0;
+  eq.STR_CACHE_MAX = 256;
+  eq.hashString = function(str) {
+    var cached = eq.stringCodeCache[str];
+    if (cached != null) {
+      return cached;
+    }
+    var code = 0;
+    for (var i = 0;i < str.length;++i) {
+      code = 31 * code + str.charCodeAt(i);
+      code %= 4294967296;
+    }
+    eq.stringCodeCacheSize++;
+    if (eq.stringCodeCacheSize >= eq.STR_CACHE_MAX) {
+      eq.stringCodeCache = {};
+      eq.stringCodeCacheSize = 1;
+    }
+    eq.stringCodeCache[str] = code;
+    return code;
+  };
+  eq.hashMapLike = function(m) {
+    var code = 0;
+    if (m.forEach != null) {
+      m.forEach(function(val, key, m) {
+        code = (code + (eq.hashCode(key) ^ eq.hashCode(val))) % 4503599627370496;
+      });
+    } else {
+      var keys = util.objectKeys(m);
+      for (var i = 0;i < keys.length;i++) {
+        var key = keys[i];
+        var val = m[key];
+        code = (code + (eq.hashCode(key) ^ eq.hashCode(val))) % 4503599627370496;
+      }
+    }
+    return code;
+  };
+  eq.hashArrayLike = function(arr) {
+    var code = 0;
+    if (util.isArray(arr)) {
+      for (var i = 0;i < arr.length;i++) {
+        code = eq.hashCombine(code, eq.hashCode(arr[i]));
+      }
+    } else {
+      if (arr.forEach) {
+        arr.forEach(function(x, i) {
+          code = eq.hashCombine(code, eq.hashCode(x));
+        });
+      }
+    }
+    return code;
+  };
+  eq.hashCode = function(x) {
+    if (x == null) {
+      return 0;
+    } else {
+      var t = typeof x;
+      switch(t) {
+        case "number":
+          return x;
+          break;
+        case "boolean":
+          return x === true ? 1 : 0;
+          break;
+        case "string":
+          return eq.hashString(x);
+          break;
+        default:
+          if (x instanceof Date) {
+            return x.valueOf();
+          } else {
+            if (util.isArray(x)) {
+              return eq.hashArrayLike(x);
+            }
+          }
+          if (x.com$cognitect$transit$hashCode) {
+            return x.com$cognitect$transit$hashCode();
+          } else {
+            return eq.hashMapLike(x);
+          }
+          break;
+      }
+    }
+  };
+  eq.extendToEQ = function(obj, opts) {
+    obj.com$cognitect$transit$hashCode = opts["hashCode"];
+    obj.com$cognitect$transit$equals = opts["equals"];
+    return obj;
+  };
+});
+goog.provide("goog.math.Long");
+goog.math.Long = function(low, high) {
+  this.low_ = low | 0;
+  this.high_ = high | 0;
+};
+goog.math.Long.IntCache_ = {};
+goog.math.Long.fromInt = function(value) {
+  if (-128 <= value && value < 128) {
+    var cachedObj = goog.math.Long.IntCache_[value];
+    if (cachedObj) {
+      return cachedObj;
+    }
+  }
+  var obj = new goog.math.Long(value | 0, value < 0 ? -1 : 0);
+  if (-128 <= value && value < 128) {
+    goog.math.Long.IntCache_[value] = obj;
+  }
+  return obj;
+};
+goog.math.Long.fromNumber = function(value) {
+  if (isNaN(value) || !isFinite(value)) {
+    return goog.math.Long.ZERO;
+  } else {
+    if (value <= -goog.math.Long.TWO_PWR_63_DBL_) {
+      return goog.math.Long.MIN_VALUE;
+    } else {
+      if (value + 1 >= goog.math.Long.TWO_PWR_63_DBL_) {
+        return goog.math.Long.MAX_VALUE;
+      } else {
+        if (value < 0) {
+          return goog.math.Long.fromNumber(-value).negate();
+        } else {
+          return new goog.math.Long(value % goog.math.Long.TWO_PWR_32_DBL_ | 0, value / goog.math.Long.TWO_PWR_32_DBL_ | 0);
+        }
+      }
+    }
+  }
+};
+goog.math.Long.fromBits = function(lowBits, highBits) {
+  return new goog.math.Long(lowBits, highBits);
+};
+goog.math.Long.fromString = function(str, opt_radix) {
+  if (str.length == 0) {
+    throw Error("number format error: empty string");
+  }
+  var radix = opt_radix || 10;
+  if (radix < 2 || 36 < radix) {
+    throw Error("radix out of range: " + radix);
+  }
+  if (str.charAt(0) == "-") {
+    return goog.math.Long.fromString(str.substring(1), radix).negate();
+  } else {
+    if (str.indexOf("-") >= 0) {
+      throw Error('number format error: interior "-" character: ' + str);
+    }
+  }
+  var radixToPower = goog.math.Long.fromNumber(Math.pow(radix, 8));
+  var result = goog.math.Long.ZERO;
+  for (var i = 0;i < str.length;i += 8) {
+    var size = Math.min(8, str.length - i);
+    var value = parseInt(str.substring(i, i + size), radix);
+    if (size < 8) {
+      var power = goog.math.Long.fromNumber(Math.pow(radix, size));
+      result = result.multiply(power).add(goog.math.Long.fromNumber(value));
+    } else {
+      result = result.multiply(radixToPower);
+      result = result.add(goog.math.Long.fromNumber(value));
+    }
+  }
+  return result;
+};
+goog.math.Long.TWO_PWR_16_DBL_ = 1 << 16;
+goog.math.Long.TWO_PWR_24_DBL_ = 1 << 24;
+goog.math.Long.TWO_PWR_32_DBL_ = goog.math.Long.TWO_PWR_16_DBL_ * goog.math.Long.TWO_PWR_16_DBL_;
+goog.math.Long.TWO_PWR_31_DBL_ = goog.math.Long.TWO_PWR_32_DBL_ / 2;
+goog.math.Long.TWO_PWR_48_DBL_ = goog.math.Long.TWO_PWR_32_DBL_ * goog.math.Long.TWO_PWR_16_DBL_;
+goog.math.Long.TWO_PWR_64_DBL_ = goog.math.Long.TWO_PWR_32_DBL_ * goog.math.Long.TWO_PWR_32_DBL_;
+goog.math.Long.TWO_PWR_63_DBL_ = goog.math.Long.TWO_PWR_64_DBL_ / 2;
+goog.math.Long.ZERO = goog.math.Long.fromInt(0);
+goog.math.Long.ONE = goog.math.Long.fromInt(1);
+goog.math.Long.NEG_ONE = goog.math.Long.fromInt(-1);
+goog.math.Long.MAX_VALUE = goog.math.Long.fromBits(4294967295 | 0, 2147483647 | 0);
+goog.math.Long.MIN_VALUE = goog.math.Long.fromBits(0, 2147483648 | 0);
+goog.math.Long.TWO_PWR_24_ = goog.math.Long.fromInt(1 << 24);
+goog.math.Long.prototype.toInt = function() {
+  return this.low_;
+};
+goog.math.Long.prototype.toNumber = function() {
+  return this.high_ * goog.math.Long.TWO_PWR_32_DBL_ + this.getLowBitsUnsigned();
+};
+goog.math.Long.prototype.toString = function(opt_radix) {
+  var radix = opt_radix || 10;
+  if (radix < 2 || 36 < radix) {
+    throw Error("radix out of range: " + radix);
+  }
+  if (this.isZero()) {
+    return "0";
+  }
+  if (this.isNegative()) {
+    if (this.equals(goog.math.Long.MIN_VALUE)) {
+      var radixLong = goog.math.Long.fromNumber(radix);
+      var div = this.div(radixLong);
+      var rem = div.multiply(radixLong).subtract(this);
+      return div.toString(radix) + rem.toInt().toString(radix);
+    } else {
+      return "-" + this.negate().toString(radix);
+    }
+  }
+  var radixToPower = goog.math.Long.fromNumber(Math.pow(radix, 6));
+  var rem = this;
+  var result = "";
+  while (true) {
+    var remDiv = rem.div(radixToPower);
+    var intval = rem.subtract(remDiv.multiply(radixToPower)).toInt();
+    var digits = intval.toString(radix);
+    rem = remDiv;
+    if (rem.isZero()) {
+      return digits + result;
+    } else {
+      while (digits.length < 6) {
+        digits = "0" + digits;
+      }
+      result = "" + digits + result;
+    }
+  }
+};
+goog.math.Long.prototype.getHighBits = function() {
+  return this.high_;
+};
+goog.math.Long.prototype.getLowBits = function() {
+  return this.low_;
+};
+goog.math.Long.prototype.getLowBitsUnsigned = function() {
+  return this.low_ >= 0 ? this.low_ : goog.math.Long.TWO_PWR_32_DBL_ + this.low_;
+};
+goog.math.Long.prototype.getNumBitsAbs = function() {
+  if (this.isNegative()) {
+    if (this.equals(goog.math.Long.MIN_VALUE)) {
+      return 64;
+    } else {
+      return this.negate().getNumBitsAbs();
+    }
+  } else {
+    var val = this.high_ != 0 ? this.high_ : this.low_;
+    for (var bit = 31;bit > 0;bit--) {
+      if ((val & 1 << bit) != 0) {
+        break;
+      }
+    }
+    return this.high_ != 0 ? bit + 33 : bit + 1;
+  }
+};
+goog.math.Long.prototype.isZero = function() {
+  return this.high_ == 0 && this.low_ == 0;
+};
+goog.math.Long.prototype.isNegative = function() {
+  return this.high_ < 0;
+};
+goog.math.Long.prototype.isOdd = function() {
+  return(this.low_ & 1) == 1;
+};
+goog.math.Long.prototype.equals = function(other) {
+  return this.high_ == other.high_ && this.low_ == other.low_;
+};
+goog.math.Long.prototype.notEquals = function(other) {
+  return this.high_ != other.high_ || this.low_ != other.low_;
+};
+goog.math.Long.prototype.lessThan = function(other) {
+  return this.compare(other) < 0;
+};
+goog.math.Long.prototype.lessThanOrEqual = function(other) {
+  return this.compare(other) <= 0;
+};
+goog.math.Long.prototype.greaterThan = function(other) {
+  return this.compare(other) > 0;
+};
+goog.math.Long.prototype.greaterThanOrEqual = function(other) {
+  return this.compare(other) >= 0;
+};
+goog.math.Long.prototype.compare = function(other) {
+  if (this.equals(other)) {
+    return 0;
+  }
+  var thisNeg = this.isNegative();
+  var otherNeg = other.isNegative();
+  if (thisNeg && !otherNeg) {
+    return-1;
+  }
+  if (!thisNeg && otherNeg) {
+    return 1;
+  }
+  if (this.subtract(other).isNegative()) {
+    return-1;
+  } else {
+    return 1;
+  }
+};
+goog.math.Long.prototype.negate = function() {
+  if (this.equals(goog.math.Long.MIN_VALUE)) {
+    return goog.math.Long.MIN_VALUE;
+  } else {
+    return this.not().add(goog.math.Long.ONE);
+  }
+};
+goog.math.Long.prototype.add = function(other) {
+  var a48 = this.high_ >>> 16;
+  var a32 = this.high_ & 65535;
+  var a16 = this.low_ >>> 16;
+  var a00 = this.low_ & 65535;
+  var b48 = other.high_ >>> 16;
+  var b32 = other.high_ & 65535;
+  var b16 = other.low_ >>> 16;
+  var b00 = other.low_ & 65535;
+  var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+  c00 += a00 + b00;
+  c16 += c00 >>> 16;
+  c00 &= 65535;
+  c16 += a16 + b16;
+  c32 += c16 >>> 16;
+  c16 &= 65535;
+  c32 += a32 + b32;
+  c48 += c32 >>> 16;
+  c32 &= 65535;
+  c48 += a48 + b48;
+  c48 &= 65535;
+  return goog.math.Long.fromBits(c16 << 16 | c00, c48 << 16 | c32);
+};
+goog.math.Long.prototype.subtract = function(other) {
+  return this.add(other.negate());
+};
+goog.math.Long.prototype.multiply = function(other) {
+  if (this.isZero()) {
+    return goog.math.Long.ZERO;
+  } else {
+    if (other.isZero()) {
+      return goog.math.Long.ZERO;
+    }
+  }
+  if (this.equals(goog.math.Long.MIN_VALUE)) {
+    return other.isOdd() ? goog.math.Long.MIN_VALUE : goog.math.Long.ZERO;
+  } else {
+    if (other.equals(goog.math.Long.MIN_VALUE)) {
+      return this.isOdd() ? goog.math.Long.MIN_VALUE : goog.math.Long.ZERO;
+    }
+  }
+  if (this.isNegative()) {
+    if (other.isNegative()) {
+      return this.negate().multiply(other.negate());
+    } else {
+      return this.negate().multiply(other).negate();
+    }
+  } else {
+    if (other.isNegative()) {
+      return this.multiply(other.negate()).negate();
+    }
+  }
+  if (this.lessThan(goog.math.Long.TWO_PWR_24_) && other.lessThan(goog.math.Long.TWO_PWR_24_)) {
+    return goog.math.Long.fromNumber(this.toNumber() * other.toNumber());
+  }
+  var a48 = this.high_ >>> 16;
+  var a32 = this.high_ & 65535;
+  var a16 = this.low_ >>> 16;
+  var a00 = this.low_ & 65535;
+  var b48 = other.high_ >>> 16;
+  var b32 = other.high_ & 65535;
+  var b16 = other.low_ >>> 16;
+  var b00 = other.low_ & 65535;
+  var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+  c00 += a00 * b00;
+  c16 += c00 >>> 16;
+  c00 &= 65535;
+  c16 += a16 * b00;
+  c32 += c16 >>> 16;
+  c16 &= 65535;
+  c16 += a00 * b16;
+  c32 += c16 >>> 16;
+  c16 &= 65535;
+  c32 += a32 * b00;
+  c48 += c32 >>> 16;
+  c32 &= 65535;
+  c32 += a16 * b16;
+  c48 += c32 >>> 16;
+  c32 &= 65535;
+  c32 += a00 * b32;
+  c48 += c32 >>> 16;
+  c32 &= 65535;
+  c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
+  c48 &= 65535;
+  return goog.math.Long.fromBits(c16 << 16 | c00, c48 << 16 | c32);
+};
+goog.math.Long.prototype.div = function(other) {
+  if (other.isZero()) {
+    throw Error("division by zero");
+  } else {
+    if (this.isZero()) {
+      return goog.math.Long.ZERO;
+    }
+  }
+  if (this.equals(goog.math.Long.MIN_VALUE)) {
+    if (other.equals(goog.math.Long.ONE) || other.equals(goog.math.Long.NEG_ONE)) {
+      return goog.math.Long.MIN_VALUE;
+    } else {
+      if (other.equals(goog.math.Long.MIN_VALUE)) {
+        return goog.math.Long.ONE;
+      } else {
+        var halfThis = this.shiftRight(1);
+        var approx = halfThis.div(other).shiftLeft(1);
+        if (approx.equals(goog.math.Long.ZERO)) {
+          return other.isNegative() ? goog.math.Long.ONE : goog.math.Long.NEG_ONE;
+        } else {
+          var rem = this.subtract(other.multiply(approx));
+          var result = approx.add(rem.div(other));
+          return result;
+        }
+      }
+    }
+  } else {
+    if (other.equals(goog.math.Long.MIN_VALUE)) {
+      return goog.math.Long.ZERO;
+    }
+  }
+  if (this.isNegative()) {
+    if (other.isNegative()) {
+      return this.negate().div(other.negate());
+    } else {
+      return this.negate().div(other).negate();
+    }
+  } else {
+    if (other.isNegative()) {
+      return this.div(other.negate()).negate();
+    }
+  }
+  var res = goog.math.Long.ZERO;
+  var rem = this;
+  while (rem.greaterThanOrEqual(other)) {
+    var approx = Math.max(1, Math.floor(rem.toNumber() / other.toNumber()));
+    var log2 = Math.ceil(Math.log(approx) / Math.LN2);
+    var delta = log2 <= 48 ? 1 : Math.pow(2, log2 - 48);
+    var approxRes = goog.math.Long.fromNumber(approx);
+    var approxRem = approxRes.multiply(other);
+    while (approxRem.isNegative() || approxRem.greaterThan(rem)) {
+      approx -= delta;
+      approxRes = goog.math.Long.fromNumber(approx);
+      approxRem = approxRes.multiply(other);
+    }
+    if (approxRes.isZero()) {
+      approxRes = goog.math.Long.ONE;
+    }
+    res = res.add(approxRes);
+    rem = rem.subtract(approxRem);
+  }
+  return res;
+};
+goog.math.Long.prototype.modulo = function(other) {
+  return this.subtract(this.div(other).multiply(other));
+};
+goog.math.Long.prototype.not = function() {
+  return goog.math.Long.fromBits(~this.low_, ~this.high_);
+};
+goog.math.Long.prototype.and = function(other) {
+  return goog.math.Long.fromBits(this.low_ & other.low_, this.high_ & other.high_);
+};
+goog.math.Long.prototype.or = function(other) {
+  return goog.math.Long.fromBits(this.low_ | other.low_, this.high_ | other.high_);
+};
+goog.math.Long.prototype.xor = function(other) {
+  return goog.math.Long.fromBits(this.low_ ^ other.low_, this.high_ ^ other.high_);
+};
+goog.math.Long.prototype.shiftLeft = function(numBits) {
+  numBits &= 63;
+  if (numBits == 0) {
+    return this;
+  } else {
+    var low = this.low_;
+    if (numBits < 32) {
+      var high = this.high_;
+      return goog.math.Long.fromBits(low << numBits, high << numBits | low >>> 32 - numBits);
+    } else {
+      return goog.math.Long.fromBits(0, low << numBits - 32);
+    }
+  }
+};
+goog.math.Long.prototype.shiftRight = function(numBits) {
+  numBits &= 63;
+  if (numBits == 0) {
+    return this;
+  } else {
+    var high = this.high_;
+    if (numBits < 32) {
+      var low = this.low_;
+      return goog.math.Long.fromBits(low >>> numBits | high << 32 - numBits, high >> numBits);
+    } else {
+      return goog.math.Long.fromBits(high >> numBits - 32, high >= 0 ? 0 : -1);
+    }
+  }
+};
+goog.math.Long.prototype.shiftRightUnsigned = function(numBits) {
+  numBits &= 63;
+  if (numBits == 0) {
+    return this;
+  } else {
+    var high = this.high_;
+    if (numBits < 32) {
+      var low = this.low_;
+      return goog.math.Long.fromBits(low >>> numBits | high << 32 - numBits, high >>> numBits);
+    } else {
+      if (numBits == 32) {
+        return goog.math.Long.fromBits(high, 0);
+      } else {
+        return goog.math.Long.fromBits(high >>> numBits - 32, 0);
+      }
+    }
+  }
+};
+goog.provide("com.cognitect.transit.types");
+goog.require("com.cognitect.transit.util");
+goog.require("com.cognitect.transit.eq");
+goog.require("goog.math.Long");
+goog.scope(function() {
+  var types = com.cognitect.transit.types, util = com.cognitect.transit.util, eq = com.cognitect.transit.eq, Long = goog.math.Long;
+  types.TaggedValue = function(tag, rep) {
+    this.tag = tag;
+    this.rep = rep;
+    this.hashCode = -1;
+  };
+  types.TaggedValue.prototype.toString = function() {
+    return "[TaggedValue: " + this.tag + ", " + this.rep + "]";
+  };
+  types.TaggedValue.prototype.equiv = function(other) {
+    return eq.equals(this, other);
+  };
+  types.TaggedValue.prototype["equiv"] = types.TaggedValue.prototype.equiv;
+  types.TaggedValue.prototype.com$cognitect$transit$equals = function(other) {
+    if (other instanceof types.TaggedValue) {
+      return this.tag === other.tag && eq.equals(this.rep, other.rep);
+    } else {
+      return false;
+    }
+  };
+  types.TaggedValue.prototype.com$cognitect$transit$hashCode = function() {
+    if (this.hashCode === -1) {
+      this.hashCode = eq.hashCombine(eq.hashCode(this.tag), eq.hashCode(this.rep));
+    }
+    return this.hashCode;
+  };
+  types.taggedValue = function(tag, rep) {
+    return new types.TaggedValue(tag, rep);
+  };
+  types.isTaggedValue = function(x) {
+    return x instanceof types.TaggedValue;
+  };
+  types.nullValue = function() {
+    return null;
+  };
+  types.boolValue = function(s) {
+    return s === "t";
+  };
+  types.MAX_INT = Long.fromString("9007199254740992");
+  types.MIN_INT = Long.fromString("-9007199254740992");
+  types.intValue = function(s) {
+    if (typeof s === "number") {
+      return s;
+    } else {
+      if (s instanceof Long) {
+        return s;
+      } else {
+        var n = Long.fromString(s, 10);
+        if (n.greaterThan(types.MAX_INT) || n.lessThan(types.MIN_INT)) {
+          return n;
+        } else {
+          return n.toNumber();
+        }
+      }
+    }
+  };
+  Long.prototype.equiv = function(other) {
+    return eq.equals(this, other);
+  };
+  Long.prototype["equiv"] = Long.prototype.equiv;
+  Long.prototype.com$cognitect$transit$equals = function(other) {
+    return other instanceof Long && this.equals(other);
+  };
+  Long.prototype.com$cognitect$transit$hashCode = function() {
+    return this.toInt();
+  };
+  types.isInteger = function(x) {
+    if (x instanceof Long) {
+      return true;
+    } else {
+      return typeof x === "number" && !isNaN(x) && !(x === Infinity) && parseFloat(x) === parseInt(x);
+    }
+  };
+  types.floatValue = function(s) {
+    return parseFloat(s);
+  };
+  types.bigInteger = function(s) {
+    return types.taggedValue("n", s);
+  };
+  types.isBigInteger = function(x) {
+    return x instanceof types.TaggedValue && x.tag === "n";
+  };
+  types.bigDecimalValue = function(s) {
+    return types.taggedValue("f", s);
+  };
+  types.isBigDecimal = function(x) {
+    return x instanceof types.TaggedValue && x.tag === "f";
+  };
+  types.charValue = function(s) {
+    return s;
+  };
+  types.Keyword = function(name) {
+    this.name = name;
+    this.hashCode = -1;
+  };
+  types.Keyword.prototype.toString = function() {
+    return ":" + this.name;
+  };
+  types.Keyword.prototype.equiv = function(other) {
+    return eq.equals(this, other);
+  };
+  types.Keyword.prototype["equiv"] = types.Keyword.prototype.equiv;
+  types.Keyword.prototype.com$cognitect$transit$equals = function(other) {
+    return other instanceof types.Keyword && this.name == other.name;
+  };
+  types.Keyword.prototype.com$cognitect$transit$hashCode = function() {
+    if (this.hashCode === -1) {
+      this.hashCode = eq.hashCode(this.name);
+    }
+    return this.hashCode;
+  };
+  types.keyword = function(s) {
+    return new types.Keyword(s);
+  };
+  types.isKeyword = function(x) {
+    return x instanceof types.Keyword;
+  };
+  types.Symbol = function(name) {
+    this.name = name;
+    this.hashCode = -1;
+  };
+  types.Symbol.prototype.toString = function() {
+    return "[Symbol: " + this.name + "]";
+  };
+  types.Symbol.prototype.equiv = function(other) {
+    return eq.equals(this, other);
+  };
+  types.Symbol.prototype["equiv"] = types.Symbol.prototype.equiv;
+  types.Symbol.prototype.com$cognitect$transit$equals = function(other) {
+    return other instanceof types.Symbol && this.name == other.name;
+  };
+  types.Symbol.prototype.com$cognitect$transit$hashCode = function() {
+    if (this.hashCode === -1) {
+      this.hashCode = eq.hashCode(this.name);
+    }
+    return this.hashCode;
+  };
+  types.symbol = function(s) {
+    return new types.Symbol(s);
+  };
+  types.isSymbol = function(x) {
+    return x instanceof types.Symbol;
+  };
+  types.hexFor = function(aLong, sidx, eidx) {
+    var ret = "", eidx = eidx || sidx + 1;
+    for (var i = sidx, shift = (7 - i) * 8, mask = Long.fromInt(255).shiftLeft(shift);i < eidx;i++, shift -= 8, mask = mask.shiftRightUnsigned(8)) {
+      var s = aLong.and(mask).shiftRightUnsigned(shift).toString(16);
+      if (s.length == 1) {
+        s = "0" + s;
+      }
+      ret += s;
+    }
+    return ret;
+  };
+  types.UUID = function(high, low) {
+    this.high = high;
+    this.low = low;
+    this.hashCode = -1;
+  };
+  types.UUID.prototype.getLeastSignificantBits = function() {
+    return this.low;
+  };
+  types.UUID.prototype.getMostSignificantBits = function() {
+    return this.high;
+  };
+  types.UUID.prototype.toString = function(s) {
+    var s = "", hi64 = this.high, lo64 = this.low;
+    s += types.hexFor(hi64, 0, 4) + "-";
+    s += types.hexFor(hi64, 4, 6) + "-";
+    s += types.hexFor(hi64, 6, 8) + "-";
+    s += types.hexFor(lo64, 0, 2) + "-";
+    s += types.hexFor(lo64, 2, 8);
+    return s;
+  };
+  types.UUID.prototype.equiv = function(other) {
+    return eq.equals(this, other);
+  };
+  types.UUID.prototype["equiv"] = types.UUID.prototype.equiv;
+  types.UUID.prototype.com$cognitect$transit$equals = function(other) {
+    return other instanceof types.UUID && this.high.equals(other.high) && this.low.equals(other.low);
+  };
+  types.UUID.prototype.com$cognitect$transit$hashCode = function() {
+    if (this.hashCode === -1) {
+      this.hashCode = eq.hashCode(this.toString());
+    }
+    return this.hashCode;
+  };
+  types.UUIDfromString = function uuidFromString(s) {
+    var s = s.replace(/-/g, ""), hi64 = null, lo64 = null, hi32 = 0, lo32 = 0, off = 24, i = 0;
+    for (hi32 = 0, i = 0, off = 24;i < 8;i += 2, off -= 8) {
+      hi32 |= parseInt(s.substring(i, i + 2), 16) << off;
+    }
+    for (lo32 = 0, i = 8, off = 24;i < 16;i += 2, off -= 8) {
+      lo32 |= parseInt(s.substring(i, i + 2), 16) << off;
+    }
+    hi64 = Long.fromBits(lo32, hi32);
+    for (hi32 = 0, i = 16, off = 24;i < 24;i += 2, off -= 8) {
+      hi32 |= parseInt(s.substring(i, i + 2), 16) << off;
+    }
+    for (lo32 = 0, i = 24, off = 24;i < 32;i += 2, off -= 8) {
+      lo32 |= parseInt(s.substring(i, i + 2), 16) << off;
+    }
+    lo64 = Long.fromBits(lo32, hi32);
+    return new types.UUID(hi64, lo64);
+  };
+  types.uuid = function(s) {
+    return types.UUIDfromString(s);
+  };
+  types.isUUID = function(x) {
+    return x instanceof types.UUID;
+  };
+  types.date = function(s) {
+    s = typeof s === "number" ? s : parseInt(s, 10);
+    return new Date(s);
+  };
+  types.verboseDate = function(s) {
+    return new Date(s);
+  };
+  Date.prototype.com$cognitect$transit$equals = function(other) {
+    if (other instanceof Date) {
+      return this.valueOf() === other.valueOf();
+    } else {
+      return false;
+    }
+  };
+  Date.prototype.com$cognitect$transit$hashCode = function() {
+    return this.valueOf();
+  };
+  types.binary = function(str) {
+    return types.taggedValue("b", str);
+  };
+  types.isBinary = function(x) {
+    return x instanceof types.TaggedValue && x.tag === "b";
+  };
+  types.uri = function(s) {
+    return types.taggedValue("r", s);
+  };
+  types.isURI = function(x) {
+    return x instanceof types.TaggedValue && x.tag === "r";
+  };
+  types.KEYS = 0;
+  types.VALUES = 1;
+  types.ENTRIES = 2;
+  types.TransitArrayMapIterator = function(entries, type) {
+    this.entries = entries;
+    this.type = type || types.KEYS;
+    this.idx = 0;
+  };
+  types.TransitArrayMapIterator.prototype.next = function(map, type) {
+    if (this.idx < this.entries.length) {
+      var value = null;
+      if (this.type === types.KEYS) {
+        value = this.entries[this.idx];
+      } else {
+        if (this.type === types.VALUES) {
+          value = this.entries[this.idx + 1];
+        } else {
+          value = [this.entries[this.idx], this.entries[this.idx + 1]];
+        }
+      }
+      var ret = {"value":value, "done":false};
+      this.idx += 2;
+      return ret;
+    } else {
+      return{"value":null, "done":true};
+    }
+  };
+  types.TransitArrayMapIterator.prototype["next"] = types.TransitArrayMapIterator.prototype.next;
+  types.TransitMapIterator = function(map, type) {
+    this.map = map;
+    this.type = type || types.KEYS;
+    this.keys = this.map.getKeys();
+    this.idx = 0;
+    this.bucket = null;
+    this.bucketIdx = 0;
+  };
+  types.TransitMapIterator.prototype.next = function() {
+    if (this.idx < this.map.size) {
+      if (this.bucket == null || !(this.bucketIdx < this.bucket.length)) {
+        this.bucket = this.map.map[this.keys[this.idx]];
+        this.bucketIdx = 0;
+      }
+      var value = null;
+      if (this.type === types.KEYS) {
+        value = this.bucket[this.bucketIdx];
+      } else {
+        if (this.type === types.VALUES) {
+          value = this.bucket[this.bucketIdx + 1];
+        } else {
+          value = [this.bucket[this.bucketIdx], this.bucket[this.bucketIdx + 1]];
+        }
+      }
+      var ret = {"value":value, "done":false};
+      this.idx++;
+      this.bucketIdx += 2;
+      return ret;
+    } else {
+      return{"value":null, "done":true};
+    }
+  };
+  types.TransitMapIterator.prototype["next"] = types.TransitMapIterator.prototype.next;
+  types.mapEquals = function(me, you) {
+    if ((you instanceof types.TransitMap || you instanceof types.TransitArrayMap) && me.size === you.size) {
+      for (var code in me.map) {
+        var bucket = me.map[code];
+        for (var j = 0;j < bucket.length;j += 2) {
+          if (!eq.equals(bucket[j + 1], you.get(bucket[j]))) {
+            return false;
+          }
+        }
+      }
+      return true;
+    } else {
+      if (you != null && typeof you === "object") {
+        var ks = util.objectKeys(you), kslen = ks.length;
+        if (me.size === kslen) {
+          for (var i = 0;i < kslen;i++) {
+            var k = ks[i];
+            if (!me.has(k) || !eq.equals(you[k], me.get(k))) {
+              return false;
+            }
+          }
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+  };
+  types.SMALL_ARRAY_MAP_THRESHOLD = 8;
+  types.ARRAY_MAP_THRESHOLD = 32;
+  types.ARRAY_MAP_ACCESS_THRESHOLD = 32;
+  types.TransitArrayMap = function(entries) {
+    this._entries = entries;
+    this.backingMap = null;
+    this.hashCode = -1;
+    this.size = entries.length / 2;
+    this.accesses = 0;
+  };
+  types.TransitArrayMap.prototype.toString = function() {
+    return "[TransitArrayMap]";
+  };
+  types.TransitArrayMap.prototype.convert = function() {
+    if (this.backingMap) {
+      throw Error("Invalid operation, already converted");
+    }
+    if (this.size < types.SMALL_ARRAY_MAP_THRESHOLD) {
+      return false;
+    }
+    this.accesses++;
+    if (this.accesses > types.ARRAY_MAP_ACCESS_THRESHOLD) {
+      this.backingMap = types.map(this._entries, false, true);
+      this._entries = [];
+      return true;
+    } else {
+      return false;
+    }
+  };
+  types.TransitArrayMap.prototype.clear = function() {
+    this.hashCode = -1;
+    if (this.backingMap) {
+      this.backingMap.clear();
+      this.size = 0;
+    } else {
+      this._entries = [];
+      this.size = 0;
+    }
+  };
+  types.TransitArrayMap.prototype["clear"] = types.TransitArrayMap.prototype.clear;
+  types.TransitArrayMap.prototype.keys = function() {
+    if (this.backingMap) {
+      return this.backingMap.keys();
+    } else {
+      return new types.TransitArrayMapIterator(this._entries, types.KEYS);
+    }
+  };
+  types.TransitArrayMap.prototype["keys"] = types.TransitArrayMap.prototype.keys;
+  types.TransitArrayMap.prototype.keySet = function() {
+    if (this.backingMap) {
+      return this.backingMap.keySet();
+    } else {
+      var ret = [];
+      for (var i = 0, j = 0;j < this._entries.length;i++, j += 2) {
+        ret[i] = this._entries[j];
+      }
+      return ret;
+    }
+  };
+  types.TransitArrayMap.prototype["keySet"] = types.TransitArrayMap.prototype.keySet;
+  types.TransitArrayMap.prototype.entries = function() {
+    if (this.backingMap) {
+      return this.backingMap.entries();
+    } else {
+      return new types.TransitArrayMapIterator(this._entries, types.ENTRIES);
+    }
+  };
+  types.TransitArrayMap.prototype["entries"] = types.TransitArrayMap.prototype.entries;
+  types.TransitArrayMap.prototype.values = function() {
+    if (this.backingMap) {
+      return this.backingMap.values();
+    } else {
+      return new types.TransitArrayMapIterator(this._entries, types.VALUES);
+    }
+  };
+  types.TransitArrayMap.prototype["values"] = types.TransitArrayMap.prototype.values;
+  types.TransitArrayMap.prototype.forEach = function(f) {
+    if (this.backingMap) {
+      this.backingMap.forEach(f);
+    } else {
+      for (var i = 0;i < this._entries.length;i += 2) {
+        f(this._entries[i + 1], this._entries[i]);
+      }
+    }
+  };
+  types.TransitArrayMap.prototype["forEach"] = types.TransitArrayMap.prototype.forEach;
+  types.TransitArrayMap.prototype.get = function(k, notFound) {
+    if (this.backingMap) {
+      return this.backingMap.get(k);
+    } else {
+      if (this.convert()) {
+        return this.get(k);
+      } else {
+        for (var i = 0;i < this._entries.length;i += 2) {
+          if (eq.equals(this._entries[i], k)) {
+            return this._entries[i + 1];
+          }
+        }
+        return notFound;
+      }
+    }
+  };
+  types.TransitArrayMap.prototype["get"] = types.TransitArrayMap.prototype.get;
+  types.TransitArrayMap.prototype.has = function(k) {
+    if (this.backingMap) {
+      return this.backingMap.has(k);
+    } else {
+      if (this.convert()) {
+        return this.has(k);
+      } else {
+        for (var i = 0;i < this._entries.length;i += 2) {
+          if (eq.equals(this._entries[i], k)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+  };
+  types.TransitArrayMap.prototype["has"] = types.TransitArrayMap.prototype.has;
+  types.TransitArrayMap.prototype.set = function(k, v) {
+    this.hashCode = -1;
+    if (this.backingMap) {
+      this.backingMap.set(k, v);
+      this.size = this.backingMap.size;
+    } else {
+      for (var i = 0;i < this._entries.length;i += 2) {
+        if (eq.equals(this._entries[i], k)) {
+          this._entries[i + 1] = v;
+          return;
+        }
+      }
+      this._entries.push(k);
+      this._entries.push(v);
+      this.size++;
+      if (this.size > types.ARRAY_MAP_THRESHOLD) {
+        this.backingMap = types.map(this._entries, false, true);
+        this._entries = null;
+      }
+    }
+  };
+  types.TransitArrayMap.prototype["set"] = types.TransitArrayMap.prototype.set;
+  types.TransitArrayMap.prototype["delete"] = function(k) {
+    this.hashCode = -1;
+    if (this.backingMap) {
+      this.backingMap["delete"](k);
+      this.size = this.backingMap.size;
+    } else {
+      for (var i = 0;i < this._entries.length;i += 2) {
+        if (eq.equals(this._entries[i], k)) {
+          this._entries.splice(i, 2);
+          this.size--;
+          return;
+        }
+      }
+    }
+  };
+  types.TransitArrayMap.prototype.com$cognitect$transit$hashCode = function() {
+    if (this.backingMap) {
+      return this.backingMap.com$cognitect$transit$hashCode();
+    } else {
+      if (this.hashCode === -1) {
+        this.hashCode = eq.hashMapLike(this);
+      }
+      return this.hashCode;
+    }
+  };
+  types.TransitArrayMap.prototype.com$cognitect$transit$equals = function(other) {
+    if (this.backingMap) {
+      return types.mapEquals(this.backingMap, other);
+    } else {
+      return types.mapEquals(this, other);
+    }
+  };
+  types.TransitMap = function(keys, map, size) {
+    this.map = map || {};
+    this._keys = keys || [];
+    this.size = size || 0;
+    this.hashCode = -1;
+  };
+  types.TransitMap.prototype.toString = function() {
+    return "[TransitMap]";
+  };
+  types.TransitMap.prototype.clear = function() {
+    this.hashCode = -1;
+    this.map = {};
+    this._keys = [];
+    this.size = 0;
+  };
+  types.TransitMap.prototype["clear"] = types.TransitMap.prototype.clear;
+  types.TransitMap.prototype.getKeys = function() {
+    if (this._keys != null) {
+      return this._keys;
+    } else {
+      return util.objectKeys(this.map);
+    }
+  };
+  types.TransitMap.prototype["delete"] = function(k) {
+    this.hashCode = -1;
+    this._keys = null;
+    var code = eq.hashCode(k), bucket = this.map[code];
+    for (var i = 0;i < bucket.length;i += 2) {
+      if (eq.equals(k, bucket[i])) {
+        bucket.splice(i, 2);
+        if (bucket.length === 0) {
+          delete this.map[code];
+        }
+        this.size--;
+        break;
+      }
+    }
+  };
+  types.TransitMap.prototype.entries = function() {
+    return new types.TransitMapIterator(this, types.ENTRIES);
+  };
+  types.TransitMap.prototype["entries"] = types.TransitMap.prototype.entries;
+  types.TransitMap.prototype.forEach = function(callback) {
+    var ks = this.getKeys();
+    for (var i = 0;i < ks.length;i++) {
+      var bucket = this.map[ks[i]];
+      for (var j = 0;j < bucket.length;j += 2) {
+        callback(bucket[j + 1], bucket[j], this);
+      }
+    }
+  };
+  types.TransitMap.prototype["forEach"] = types.TransitMap.prototype.forEach;
+  types.TransitMap.prototype.get = function(k, notFound) {
+    var code = eq.hashCode(k), bucket = this.map[code];
+    if (bucket != null) {
+      for (var i = 0;i < bucket.length;i += 2) {
+        if (eq.equals(k, bucket[i])) {
+          return bucket[i + 1];
+        }
+      }
+    } else {
+      return notFound;
+    }
+  };
+  types.TransitMap.prototype["get"] = types.TransitMap.prototype.get;
+  types.TransitMap.prototype.has = function(k) {
+    var code = eq.hashCode(k), bucket = this.map[code];
+    if (bucket != null) {
+      for (var i = 0;i < bucket.length;i += 2) {
+        if (eq.equals(k, bucket[i])) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return false;
+    }
+  };
+  types.TransitMap.prototype["has"] = types.TransitMap.prototype.has;
+  types.TransitMap.prototype.keys = function() {
+    return new types.TransitMapIterator(this, types.KEYS);
+  };
+  types.TransitMap.prototype["keys"] = types.TransitMap.prototype.keys;
+  types.TransitMap.prototype.keySet = function() {
+    var keys = this.getKeys(), ret = [];
+    for (var i = 0;i < keys.length;i++) {
+      var bucket = this.map[keys[i]];
+      for (var j = 0;j < bucket.length;j += 2) {
+        ret.push(bucket[j]);
+      }
+    }
+    return ret;
+  };
+  types.TransitMap.prototype["keySet"] = types.TransitMap.prototype.keySet;
+  types.TransitMap.prototype.set = function(k, v) {
+    this.hashCode = -1;
+    var code = eq.hashCode(k), bucket = this.map[code];
+    if (bucket == null) {
+      if (this._keys) {
+        this._keys.push(code);
+      }
+      this.map[code] = [k, v];
+      this.size++;
+    } else {
+      var newEntry = true;
+      for (var i = 0;i < bucket.length;i += 2) {
+        if (eq.equals(v, bucket[i])) {
+          newEntry = false;
+          bucket[i] = v;
+          break;
+        }
+      }
+      if (newEntry) {
+        bucket.push(k);
+        bucket.push(v);
+        this.size++;
+      }
+    }
+  };
+  types.TransitMap.prototype["set"] = types.TransitMap.prototype.set;
+  types.TransitMap.prototype.values = function() {
+    return new types.TransitMapIterator(this, types.VALUES);
+  };
+  types.TransitMap.prototype["values"] = types.TransitMap.prototype.values;
+  types.TransitMap.prototype.com$cognitect$transit$hashCode = function() {
+    if (this.hashCode === -1) {
+      this.hashCode = eq.hashMapLike(this);
+    }
+    return this.hashCode;
+  };
+  types.TransitMap.prototype.com$cognitect$transit$equals = function(other) {
+    return types.mapEquals(this, other);
+  };
+  types.map = function(arr, checkDups, hashMap) {
+    arr = arr || [];
+    checkDups = checkDups === false ? checkDups : true;
+    hashMap = hashMap === true ? hashMap : false;
+    if (!hashMap && arr.length <= types.ARRAY_MAP_THRESHOLD * 2) {
+      if (checkDups) {
+        var t = arr;
+        arr = [];
+        for (var i = 0;i < t.length;i += 2) {
+          var seen = false;
+          for (var j = 0;j < arr.length;j += 2) {
+            if (eq.equals(arr[j], t[i])) {
+              arr[j + 1] = t[i + 1];
+              seen = true;
+              break;
+            }
+          }
+          if (!seen) {
+            arr.push(t[i]);
+            arr.push(t[i + 1]);
+          }
+        }
+      }
+      return new types.TransitArrayMap(arr);
+    } else {
+      var map = {}, keys = [], size = 0;
+      for (var i = 0;i < arr.length;i += 2) {
+        var code = eq.hashCode(arr[i]), bucket = map[code];
+        if (bucket == null) {
+          keys.push(code);
+          map[code] = [arr[i], arr[i + 1]];
+          size++;
+        } else {
+          var newEntry = true;
+          for (var j = 0;j < bucket.length;j += 2) {
+            if (eq.equals(bucket[j], arr[i])) {
+              bucket[j + 1] = arr[i + 1];
+              newEntry = false;
+              break;
+            }
+          }
+          if (newEntry) {
+            bucket.push(arr[i]);
+            bucket.push(arr[i + 1]);
+            size++;
+          }
+        }
+      }
+      return new types.TransitMap(keys, map, size);
+    }
+  };
+  types.isArrayMap = function(x) {
+    return x instanceof types.TransitArrayMap;
+  };
+  types.isMap = function(x) {
+    return x instanceof types.TransitArrayMap || x instanceof types.TransitMap;
+  };
+  types.TransitSet = function(map) {
+    this.map = map;
+    this.size = map.size;
+  };
+  types.TransitSet.prototype.toString = function() {
+    return "[TransitSet]";
+  };
+  types.TransitSet.prototype.add = function(value) {
+    this.map.set(value, value);
+    this.size = this.map.size;
+  };
+  types.TransitSet.prototype["add"] = types.TransitSet.prototype.add;
+  types.TransitSet.prototype.clear = function() {
+    this.map = new types.TransitMap;
+    this.size = 0;
+  };
+  types.TransitSet.prototype["clear"] = types.TransitSet.prototype.clear;
+  types.TransitSet.prototype["delete"] = function(value) {
+    this.map["delete"](value);
+    this.size = this.map.size;
+  };
+  types.TransitSet.prototype.entries = function() {
+    return this.map.entries();
+  };
+  types.TransitSet.prototype["entries"] = types.TransitSet.prototype.entries;
+  types.TransitSet.prototype.forEach = function(iterator, thisArg) {
+    var self = this;
+    this.map.forEach(function(v, k, m) {
+      iterator(k, self);
+    });
+  };
+  types.TransitSet.prototype["forEach"] = types.TransitSet.prototype.forEach;
+  types.TransitSet.prototype.has = function(value) {
+    return this.map.has(value);
+  };
+  types.TransitSet.prototype["has"] = types.TransitSet.prototype.has;
+  types.TransitSet.prototype.keys = function() {
+    return this.map.keys();
+  };
+  types.TransitSet.prototype["keys"] = types.TransitSet.prototype.keys;
+  types.TransitSet.prototype.keySet = function() {
+    return this.map.keySet();
+  };
+  types.TransitSet.prototype["keySet"] = types.TransitSet.prototype.keySet;
+  types.TransitSet.prototype.values = function() {
+    return this.map.values();
+  };
+  types.TransitSet.prototype["values"] = types.TransitSet.prototype.values;
+  types.TransitSet.prototype.com$cognitect$transit$equals = function(other) {
+    if (other instanceof types.TransitSet) {
+      if (this.size === other.size) {
+        return eq.equals(this.map, other.map);
+      }
+    } else {
+      return false;
+    }
+  };
+  types.TransitSet.prototype.com$cognitect$transit$hashCode = function(other) {
+    return eq.hashCode(this.map);
+  };
+  types.set = function(arr) {
+    arr = arr || [];
+    var map = {}, keys = [], size = 0;
+    for (var i = 0;i < arr.length;i++) {
+      var code = eq.hashCode(arr[i]), vals = map[code];
+      if (vals == null) {
+        keys.push(code);
+        map[code] = [arr[i], arr[i]];
+        size++;
+      } else {
+        var newEntry = true;
+        for (var j = 0;j < vals.length;j += 2) {
+          if (eq.equals(vals[j], arr[i])) {
+            newEntry = false;
+            break;
+          }
+        }
+        if (newEntry) {
+          vals.push(arr[i]);
+          vals.push(arr[i]);
+          size++;
+        }
+      }
+    }
+    return new types.TransitSet(new types.TransitMap(keys, map, size));
+  };
+  types.isSet = function(x) {
+    return x instanceof types.TransitSet;
+  };
+  types.quoted = function(obj) {
+    return types.taggedValue("'", obj);
+  };
+  types.isQuoted = function(x) {
+    return x instanceof types.TaggedValue && x.tag === "'";
+  };
+  types.list = function(xs) {
+    return types.taggedValue("list", xs);
+  };
+  types.isList = function(x) {
+    return x instanceof types.List && x.tag === "list";
+  };
+  types.link = function(rep) {
+    return types.taggedValue("link", rep);
+  };
+  types.isLink = function(x) {
+    return x instanceof types.TaggedValue && x.tag === "link";
+  };
+  types.specialDouble = function(v) {
+    switch(v) {
+      case "-INF":
+        return-Infinity;
+      case "INF":
+        return Infinity;
+      case "NaN":
+        return NaN;
+      default:
+        throw new Error("Invalid special double value " + v);break;
+    }
+  };
+});
+goog.provide("com.cognitect.transit.delimiters");
+goog.scope(function() {
+  var delimiters = com.cognitect.transit.delimiters;
+  delimiters.ESC = "~";
+  delimiters.TAG = "#";
+  delimiters.SUB = "^";
+  delimiters.RES = "`";
+  delimiters.ESC_TAG = "~#";
+});
+goog.provide("com.cognitect.transit.caching");
+goog.require("com.cognitect.transit.delimiters");
+goog.scope(function() {
+  var caching = com.cognitect.transit.caching, d = com.cognitect.transit.delimiters;
+  caching.MIN_SIZE_CACHEABLE = 3;
+  caching.BASE_CHAR_IDX = 48;
+  caching.CACHE_CODE_DIGITS = 44;
+  caching.MAX_CACHE_ENTRIES = caching.CACHE_CODE_DIGITS * caching.CACHE_CODE_DIGITS;
+  caching.MAX_CACHE_SIZE = 4096;
+  caching.isCacheable = function(string, asMapKey) {
+    if (string.length > caching.MIN_SIZE_CACHEABLE) {
+      if (asMapKey) {
+        return true;
+      } else {
+        var c0 = string.charAt(0), c1 = string.charAt(1);
+        if (c0 === d.ESC) {
+          return c1 === ":" || c1 === "$" || c1 === "#";
+        } else {
+          return false;
+        }
+      }
+    } else {
+      return false;
+    }
+  };
+  caching.idxToCode = function(idx) {
+    var hi = Math.floor(idx / caching.CACHE_CODE_DIGITS), lo = idx % caching.CACHE_CODE_DIGITS, loc = String.fromCharCode(lo + caching.BASE_CHAR_IDX);
+    if (hi === 0) {
+      return d.SUB + loc;
+    } else {
+      return d.SUB + String.fromCharCode(hi + caching.BASE_CHAR_IDX) + loc;
+    }
+  };
+  caching.WriteCache = function() {
+    this.idx = 0;
+    this.gen = 0;
+    this.cacheSize = 0;
+    this.cache = {};
+  };
+  caching.WriteCache.prototype.write = function(string, asMapKey) {
+    if (caching.isCacheable(string, asMapKey)) {
+      if (this.cacheSize === caching.MAX_CACHE_SIZE) {
+        this.clear();
+        this.gen = 0;
+        this.cache = {};
+      } else {
+        if (this.idx === caching.MAX_CACHE_ENTRIES) {
+          this.clear();
+        }
+      }
+      var entry = this.cache[string];
+      if (entry == null) {
+        this.cache[string] = [caching.idxToCode(this.idx), this.gen];
+        this.idx++;
+        return string;
+      } else {
+        if (entry[1] != this.gen) {
+          entry[1] = this.gen;
+          entry[0] = caching.idxToCode(this.idx);
+          this.idx++;
+          return string;
+        } else {
+          return entry[0];
+        }
+      }
+    } else {
+      return string;
+    }
+  };
+  caching.WriteCache.prototype.clear = function() {
+    this.idx = 0;
+    this.gen++;
+  };
+  caching.isCacheCode = function(string) {
+    return string.charAt(0) === d.SUB && string.charAt(1) !== " ";
+  };
+  caching.codeToIdx = function(code) {
+    if (code.length === 2) {
+      return code.charCodeAt(1) - caching.BASE_CHAR_IDX;
+    } else {
+      var hi = (code.charCodeAt(1) - caching.BASE_CHAR_IDX) * caching.CACHE_CODE_DIGITS, lo = code.charCodeAt(2) - caching.BASE_CHAR_IDX;
+      return hi + lo;
+    }
+  };
+  caching.ReadCache = function() {
+    this.idx = 0;
+    this.cache = [];
+  };
+  caching.ReadCache.prototype.write = function(obj, asMapKey) {
+    if (this.idx == caching.MAX_CACHE_ENTRIES) {
+      this.idx = 0;
+    }
+    this.cache[this.idx] = obj;
+    this.idx++;
+    return obj;
+  };
+  caching.ReadCache.prototype.read = function(string, asMapKey) {
+    return this.cache[caching.codeToIdx(string)];
+  };
+  caching.ReadCache.prototype.clear = function() {
+    this.idx = 0;
+  };
+});
+goog.provide("com.cognitect.transit.impl.decoder");
+goog.require("com.cognitect.transit.util");
+goog.require("com.cognitect.transit.delimiters");
+goog.require("com.cognitect.transit.caching");
+goog.require("com.cognitect.transit.types");
+goog.scope(function() {
+  var decoder = com.cognitect.transit.impl.decoder, util = com.cognitect.transit.util, d = com.cognitect.transit.delimiters, caching = com.cognitect.transit.caching, types = com.cognitect.transit.types;
+  decoder.Tag = function(s) {
+    this.str = s;
+  };
+  decoder.tag = function(s) {
+    return new decoder.Tag(s);
+  };
+  decoder.isTag = function(x) {
+    return x && x instanceof decoder.Tag;
+  };
+  decoder.isGroundHandler = function(handler) {
+    switch(handler) {
+      case "_":
+      ;
+      case "s":
+      ;
+      case "?":
+      ;
+      case "i":
+      ;
+      case "d":
+      ;
+      case "b":
+      ;
+      case "'":
+      ;
+      case "array":
+      ;
+      case "map":
+        return true;
+    }
+    return false;
+  };
+  decoder.Decoder = function(options) {
+    this.options = options || {};
+    this.handlers = {};
+    for (var h in this.defaults.handlers) {
+      this.handlers[h] = this.defaults.handlers[h];
+    }
+    for (var h in this.options["handlers"]) {
+      if (decoder.isGroundHandler(h)) {
+        throw new Error('Cannot override handler for ground type "' + h + '"');
+      }
+      this.handlers[h] = this.options["handlers"][h];
+    }
+    this.preferStrings = this.options["preferStrings"] != null ? this.options["preferStrings"] : this.defaults.preferStrings;
+    this.defaultHandler = this.options["defaultHandler"] || this.defaults.defaultHandler;
+    this.mapBuilder = this.options["mapBuilder"];
+    this.arrayBuilder = this.options["arrayBuilder"];
+  };
+  decoder.Decoder.prototype.defaults = {handlers:{"_":function(v) {
+    return types.nullValue();
+  }, "?":function(v) {
+    return types.boolValue(v);
+  }, "b":function(v) {
+    return types.binary(v);
+  }, "i":function(v) {
+    return types.intValue(v);
+  }, "n":function(v) {
+    return types.bigInteger(v);
+  }, "d":function(v) {
+    return types.floatValue(v);
+  }, "f":function(v) {
+    return types.bigDecimalValue(v);
+  }, "c":function(v) {
+    return types.charValue(v);
+  }, ":":function(v) {
+    return types.keyword(v);
+  }, "$":function(v) {
+    return types.symbol(v);
+  }, "r":function(v) {
+    return types.uri(v);
+  }, "z":function(v) {
+    return types.specialDouble(v);
+  }, "'":function(v) {
+    return v;
+  }, "m":function(v) {
+    return types.date(v);
+  }, "t":function(v) {
+    return types.verboseDate(v);
+  }, "u":function(v) {
+    return types.uuid(v);
+  }, "set":function(v) {
+    return types.set(v);
+  }, "list":function(v) {
+    return types.list(v);
+  }, "link":function(v) {
+    return types.link(v);
+  }, "cmap":function(v) {
+    return types.map(v, false);
+  }}, defaultHandler:function(c, val) {
+    return types.taggedValue(c, val);
+  }, preferStrings:true};
+  decoder.Decoder.prototype.decode = function(node, cache, asMapKey, tagValue) {
+    if (node == null) {
+      return null;
+    }
+    var t = typeof node;
+    switch(t) {
+      case "string":
+        return this.decodeString(node, cache, asMapKey, tagValue);
+        break;
+      case "object":
+        if (util.isArray(node)) {
+          if (node[0] === "^ ") {
+            return this.decodeArrayHash(node, cache, asMapKey, tagValue);
+          } else {
+            return this.decodeArray(node, cache, false, tagValue);
+          }
+        } else {
+          return this.decodeHash(node, cache, asMapKey, tagValue);
+        }
+        break;
+    }
+    return node;
+  };
+  decoder.Decoder.prototype["decode"] = decoder.Decoder.prototype.decode;
+  decoder.Decoder.prototype.decodeString = function(string, cache, asMapKey, tagValue) {
+    if (caching.isCacheable(string, asMapKey)) {
+      var val = this.parseString(string, cache, false);
+      if (cache) {
+        cache.write(val, asMapKey);
+      }
+      return val;
+    } else {
+      if (caching.isCacheCode(string)) {
+        return cache.read(string, asMapKey);
+      } else {
+        return this.parseString(string, cache, asMapKey);
+      }
+    }
+  };
+  decoder.Decoder.prototype.decodeHash = function(hash, cache, asMapKey, tagValue) {
+    var ks = util.objectKeys(hash), key = ks[0], tag = ks.length == 1 ? this.decode(key, cache, false, false) : null;
+    if (decoder.isTag(tag)) {
+      var val = hash[key], handler = this.handlers[tag.str];
+      if (handler != null) {
+        return handler(this.decode(val, cache, false, true));
+      } else {
+        return types.taggedValue(tag.str, this.decode(val, cache, false, false));
+      }
+    } else {
+      if (this.mapBuilder) {
+        if (ks.length < types.SMALL_ARRAY_MAP_THRESHOLD * 2 && this.mapBuilder.fromArray) {
+          var nodep = [];
+          for (var i = 0;i < ks.length;i++) {
+            var strKey = ks[i];
+            nodep.push(this.decode(strKey, cache, true, false));
+            nodep.push(this.decode(hash[strKey], cache, false, false));
+          }
+          return this.mapBuilder.fromArray(nodep, hash);
+        } else {
+          var ret = this.mapBuilder.init(hash);
+          for (var i = 0;i < ks.length;i++) {
+            var strKey = ks[i];
+            ret = this.mapBuilder.add(ret, this.decode(strKey, cache, true, false), this.decode(hash[strKey], cache, false, false), hash);
+          }
+          return this.mapBuilder.finalize(ret, hash);
+        }
+      } else {
+        var nodep = [];
+        for (var i = 0;i < ks.length;i++) {
+          var strKey = ks[i];
+          nodep.push(this.decode(strKey, cache, true, false));
+          nodep.push(this.decode(hash[strKey], cache, false, false));
+        }
+        return types.map(nodep, false);
+      }
+    }
+  };
+  decoder.Decoder.prototype.decodeArrayHash = function(node, cache, asMapKey, tagValue) {
+    if (this.mapBuilder) {
+      if (node.length < types.SMALL_ARRAY_MAP_THRESHOLD * 2 + 1 && this.mapBuilder.fromArray) {
+        var nodep = [];
+        for (var i = 1;i < node.length;i += 2) {
+          nodep.push(this.decode(node[i], cache, true, false));
+          nodep.push(this.decode(node[i + 1], cache, false, false));
+        }
+        return this.mapBuilder.fromArray(nodep, node);
+      } else {
+        var ret = this.mapBuilder.init(node);
+        for (var i = 1;i < node.length;i += 2) {
+          ret = this.mapBuilder.add(ret, this.decode(node[i], cache, true, false), this.decode(node[i + 1], cache, false, false), node);
+        }
+        return this.mapBuilder.finalize(ret, node);
+      }
+    } else {
+      var nodep = [];
+      for (var i = 1;i < node.length;i += 2) {
+        nodep.push(this.decode(node[i], cache, true, false));
+        nodep.push(this.decode(node[i + 1], cache, false, false));
+      }
+      return types.map(nodep, false);
+    }
+  };
+  decoder.Decoder.prototype.decodeArray = function(node, cache, asMapKey, tagValue) {
+    if (tagValue) {
+      var ret = [];
+      for (var i = 0;i < node.length;i++) {
+        ret.push(this.decode(node[i], cache, asMapKey, false));
+      }
+      return ret;
+    } else {
+      var cacheIdx = cache && cache.idx;
+      if (node.length === 2 && typeof node[0] === "string") {
+        var tag = this.decode(node[0], cache, false, false);
+        if (decoder.isTag(tag)) {
+          var val = node[1], handler = this.handlers[tag.str];
+          if (handler != null) {
+            var ret = handler(this.decode(val, cache, false, true));
+            return ret;
+          } else {
+            return types.taggedValue(tag.str, this.decode(val, cache, false, false));
+          }
+        }
+      }
+      if (cache && cacheIdx != cache.idx) {
+        cache.idx = cacheIdx;
+      }
+      if (this.arrayBuilder) {
+        if (node.length <= 32 && this.arrayBuilder.fromArray) {
+          var arr = [];
+          for (var i = 0;i < node.length;i++) {
+            arr.push(this.decode(node[i], cache, asMapKey, false));
+          }
+          return this.arrayBuilder.fromArray(arr, node);
+        } else {
+          var ret = this.arrayBuilder.init();
+          for (var i = 0;i < node.length;i++) {
+            ret = this.arrayBuilder.add(ret, this.decode(node[i], cache, asMapKey, false), node);
+          }
+          return this.arrayBuilder.finalize(ret, node);
+        }
+      } else {
+        var ret = [];
+        for (var i = 0;i < node.length;i++) {
+          ret.push(this.decode(node[i], cache, asMapKey, false));
+        }
+        return ret;
+      }
+    }
+  };
+  decoder.Decoder.prototype.parseString = function(string, cache, asMapKey) {
+    if (string.charAt(0) === d.ESC) {
+      var c = string.charAt(1);
+      if (c === d.ESC || c === d.SUB || c === d.RES) {
+        return string.substring(1);
+      } else {
+        if (c === d.TAG) {
+          return decoder.tag(string.substring(2));
+        } else {
+          var handler = this.handlers[c];
+          if (handler == null) {
+            return this.defaultHandler(c, string.substring(2));
+          } else {
+            return handler(string.substring(2));
+          }
+        }
+      }
+    } else {
+      return string;
+    }
+  };
+  decoder.decoder = function(options) {
+    return new decoder.Decoder(options);
+  };
+});
+goog.provide("com.cognitect.transit.impl.reader");
+goog.require("com.cognitect.transit.impl.decoder");
+goog.require("com.cognitect.transit.caching");
+goog.scope(function() {
+  var reader = com.cognitect.transit.impl.reader, decoder = com.cognitect.transit.impl.decoder, caching = com.cognitect.transit.caching;
+  reader.JSONUnmarshaller = function(opts) {
+    this.decoder = new decoder.Decoder(opts);
+  };
+  reader.JSONUnmarshaller.prototype.unmarshal = function(str, cache) {
+    return this.decoder.decode(JSON.parse(str), cache);
+  };
+  reader.Reader = function(unmarshaller, options) {
+    this.unmarshaller = unmarshaller;
+    this.options = options || {};
+    this.cache = this.options["cache"] ? this.options["cache"] : new caching.ReadCache;
+  };
+  reader.Reader.prototype.read = function(str) {
+    var ret = this.unmarshaller.unmarshal(str, this.cache);
+    this.cache.clear();
+    return ret;
+  };
+  reader.Reader.prototype["read"] = reader.Reader.prototype.read;
+});
+goog.provide("com.cognitect.transit.handlers");
+goog.require("com.cognitect.transit.util");
+goog.require("com.cognitect.transit.types");
+goog.require("goog.math.Long");
+goog.scope(function() {
+  var handlers = com.cognitect.transit.handlers, util = com.cognitect.transit.util, types = com.cognitect.transit.types, Long = goog.math.Long;
+  handlers.ctorGuid = 0;
+  handlers.ctorGuidProperty = "transit$guid$" + util.randomUUID();
+  handlers.typeTag = function(ctor) {
+    if (ctor == null) {
+      return "null";
+    } else {
+      if (ctor === String) {
+        return "string";
+      } else {
+        if (ctor === Boolean) {
+          return "boolean";
+        } else {
+          if (ctor === Number) {
+            return "number";
+          } else {
+            if (ctor === Array) {
+              return "array";
+            } else {
+              if (ctor === Object) {
+                return "map";
+              } else {
+                var tag = ctor[handlers.ctorGuidProperty];
+                if (tag == null) {
+                  if (typeof Object.defineProperty != "undefined") {
+                    tag = ++handlers.ctorGuid;
+                    Object.defineProperty(ctor, handlers.ctorGuidProperty, {value:tag, enumerable:false});
+                  } else {
+                    ctor[handlers.ctorGuidProperty] = tag = ++handlers.ctorGuid;
+                  }
+                }
+                return tag;
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+  handlers.constructor = function(x) {
+    if (x == null) {
+      return null;
+    } else {
+      return x.constructor;
+    }
+  };
+  handlers.padZeros = function(n, m) {
+    var s = n.toString();
+    for (var i = s.length;i < m;i++) {
+      s = "0" + s;
+    }
+    return s;
+  };
+  handlers.stringableKeys = function(m) {
+    var stringable = false, ks = util.objectKeys(m);
+    for (var i = 0;i < ks.length;i++) {
+    }
+    return true;
+  };
+  handlers.NilHandler = function() {
+  };
+  handlers.NilHandler.prototype.tag = function(v) {
+    return "_";
+  };
+  handlers.NilHandler.prototype.rep = function(v) {
+    return null;
+  };
+  handlers.NilHandler.prototype.stringRep = function(v) {
+    return "null";
+  };
+  handlers.StringHandler = function() {
+  };
+  handlers.StringHandler.prototype.tag = function(v) {
+    return "s";
+  };
+  handlers.StringHandler.prototype.rep = function(v) {
+    return v;
+  };
+  handlers.StringHandler.prototype.stringRep = function(v) {
+    return v;
+  };
+  handlers.NumberHandler = function() {
+  };
+  handlers.NumberHandler.prototype.tag = function(v) {
+    return "i";
+  };
+  handlers.NumberHandler.prototype.rep = function(v) {
+    return v;
+  };
+  handlers.NumberHandler.prototype.stringRep = function(v) {
+    return v.toString();
+  };
+  handlers.IntegerHandler = function() {
+  };
+  handlers.IntegerHandler.prototype.tag = function(v) {
+    return "i";
+  };
+  handlers.IntegerHandler.prototype.rep = function(v) {
+    return v.toString();
+  };
+  handlers.IntegerHandler.prototype.stringRep = function(v) {
+    return v.toString();
+  };
+  handlers.BooleanHandler = function() {
+  };
+  handlers.BooleanHandler.prototype.tag = function(v) {
+    return "?";
+  };
+  handlers.BooleanHandler.prototype.rep = function(v) {
+    return v;
+  };
+  handlers.BooleanHandler.prototype.stringRep = function(v) {
+    return v.toString();
+  };
+  handlers.ArrayHandler = function() {
+  };
+  handlers.ArrayHandler.prototype.tag = function(v) {
+    return "array";
+  };
+  handlers.ArrayHandler.prototype.rep = function(v) {
+    return v;
+  };
+  handlers.ArrayHandler.prototype.stringRep = function(v) {
+    return null;
+  };
+  handlers.MapHandler = function() {
+  };
+  handlers.MapHandler.prototype.tag = function(v) {
+    return "map";
+  };
+  handlers.MapHandler.prototype.rep = function(v) {
+    return v;
+  };
+  handlers.MapHandler.prototype.stringRep = function(v) {
+    return null;
+  };
+  handlers.VerboseDateHandler = function() {
+  };
+  handlers.VerboseDateHandler.prototype.tag = function(v) {
+    return "t";
+  };
+  handlers.VerboseDateHandler.prototype.rep = function(v) {
+    return v.getUTCFullYear() + "-" + handlers.padZeros(v.getUTCMonth() + 1, 2) + "-" + handlers.padZeros(v.getUTCDate(), 2) + "T" + handlers.padZeros(v.getUTCHours(), 2) + ":" + handlers.padZeros(v.getUTCMinutes(), 2) + ":" + handlers.padZeros(v.getUTCSeconds(), 2) + "." + handlers.padZeros(v.getUTCMilliseconds(), 3) + "Z";
+  };
+  handlers.VerboseDateHandler.prototype.stringRep = function(v, h) {
+    return h.rep(v);
+  };
+  handlers.DateHandler = function() {
+  };
+  handlers.DateHandler.prototype.tag = function(v) {
+    return "m";
+  };
+  handlers.DateHandler.prototype.rep = function(v) {
+    return v.valueOf();
+  };
+  handlers.DateHandler.prototype.stringRep = function(v) {
+    return v.valueOf().toString();
+  };
+  handlers.DateHandler.prototype.getVerboseHandler = function(v) {
+    return new handlers.VerboseDateHandler;
+  };
+  handlers.UUIDHandler = function() {
+  };
+  handlers.UUIDHandler.prototype.tag = function(v) {
+    return "u";
+  };
+  handlers.UUIDHandler.prototype.rep = function(v) {
+    return v.toString();
+  };
+  handlers.UUIDHandler.prototype.stringRep = function(v) {
+    return v.toString();
+  };
+  handlers.KeywordHandler = function() {
+  };
+  handlers.KeywordHandler.prototype.tag = function(v) {
+    return ":";
+  };
+  handlers.KeywordHandler.prototype.rep = function(v) {
+    return v.name;
+  };
+  handlers.KeywordHandler.prototype.stringRep = function(v, h) {
+    return h.rep(v);
+  };
+  handlers.SymbolHandler = function() {
+  };
+  handlers.SymbolHandler.prototype.tag = function(v) {
+    return "$";
+  };
+  handlers.SymbolHandler.prototype.rep = function(v) {
+    return v.name;
+  };
+  handlers.SymbolHandler.prototype.stringRep = function(v, h) {
+    return h.rep(v);
+  };
+  handlers.TaggedHandler = function() {
+  };
+  handlers.TaggedHandler.prototype.tag = function(v) {
+    return v.tag;
+  };
+  handlers.TaggedHandler.prototype.rep = function(v) {
+    return v.rep;
+  };
+  handlers.TaggedHandler.prototype.stringRep = function(v, h) {
+    return null;
+  };
+  handlers.TransitSetHandler = function() {
+  };
+  handlers.TransitSetHandler.prototype.tag = function(v) {
+    return "set";
+  };
+  handlers.TransitSetHandler.prototype.rep = function(v) {
+    var arr = [];
+    v.forEach(function(key, set) {
+      arr.push(key);
+    });
+    return types.taggedValue("array", arr);
+  };
+  handlers.TransitSetHandler.prototype.stringRep = function(v, h) {
+    return null;
+  };
+  handlers.TransitArrayMapHandler = function() {
+  };
+  handlers.TransitArrayMapHandler.prototype.tag = function(v) {
+    return "map";
+  };
+  handlers.TransitArrayMapHandler.prototype.rep = function(v) {
+    return v;
+  };
+  handlers.TransitArrayMapHandler.prototype.stringRep = function(v, h) {
+    return null;
+  };
+  handlers.TransitMapHandler = function() {
+  };
+  handlers.TransitMapHandler.prototype.tag = function(v) {
+    return "map";
+  };
+  handlers.TransitMapHandler.prototype.rep = function(v) {
+    return v;
+  };
+  handlers.TransitMapHandler.prototype.stringRep = function(v, h) {
+    return null;
+  };
+  handlers.defaultHandlers = function(hs) {
+    hs.set(null, new handlers.NilHandler);
+    hs.set(String, new handlers.StringHandler);
+    hs.set(Number, new handlers.NumberHandler);
+    hs.set(Long, new handlers.IntegerHandler);
+    hs.set(Boolean, new handlers.BooleanHandler);
+    hs.set(Array, new handlers.ArrayHandler);
+    hs.set(Object, new handlers.MapHandler);
+    hs.set(Date, new handlers.DateHandler);
+    hs.set(types.UUID, new handlers.UUIDHandler);
+    hs.set(types.Keyword, new handlers.KeywordHandler);
+    hs.set(types.Symbol, new handlers.SymbolHandler);
+    hs.set(types.TaggedValue, new handlers.TaggedHandler);
+    hs.set(types.TransitSet, new handlers.TransitSetHandler);
+    hs.set(types.TransitArrayMap, new handlers.TransitArrayMapHandler);
+    hs.set(types.TransitMap, new handlers.TransitMapHandler);
+    return hs;
+  };
+  handlers.Handlers = function() {
+    this.handlers = {};
+    handlers.defaultHandlers(this);
+  };
+  handlers.Handlers.prototype.get = function(ctor) {
+    var h = null;
+    if (typeof ctor === "string") {
+      h = this.handlers[ctor];
+    } else {
+      h = this.handlers[handlers.typeTag(ctor)];
+    }
+    if (h != null) {
+      return h;
+    } else {
+      return this.handlers["default"];
+    }
+  };
+  handlers.validTag = function(tag) {
+    switch(tag) {
+      case "null":
+      ;
+      case "string":
+      ;
+      case "boolean":
+      ;
+      case "number":
+      ;
+      case "array":
+      ;
+      case "map":
+        return false;
+        break;
+    }
+    return true;
+  };
+  handlers.Handlers.prototype.set = function(ctor, handler) {
+    if (typeof ctor === "string" && handlers.validTag(ctor)) {
+      this.handlers[ctor] = handler;
+    } else {
+      this.handlers[handlers.typeTag(ctor)] = handler;
+    }
+  };
+});
+goog.provide("com.cognitect.transit.impl.writer");
+goog.require("com.cognitect.transit.util");
+goog.require("com.cognitect.transit.caching");
+goog.require("com.cognitect.transit.handlers");
+goog.require("com.cognitect.transit.types");
+goog.require("com.cognitect.transit.delimiters");
+goog.require("goog.math.Long");
+goog.scope(function() {
+  var writer = com.cognitect.transit.impl.writer, util = com.cognitect.transit.util, caching = com.cognitect.transit.caching, handlers = com.cognitect.transit.handlers, types = com.cognitect.transit.types, d = com.cognitect.transit.delimiters, Long = goog.math.Long;
+  writer.escape = function(string) {
+    if (string.length > 0) {
+      var c = string.charAt(0);
+      if (c === d.ESC || c === d.SUB || c === d.RES) {
+        return d.ESC + string;
+      } else {
+        return string;
+      }
+    } else {
+      return string;
+    }
+  };
+  writer.JSONMarshaller = function(opts) {
+    this.opts = opts || {};
+    this.preferStrings = this.opts["preferStrings"] != null ? this.opts["preferStrings"] : true;
+    this.objectBuilder = this.opts["objectBuilder"] || null;
+    this.handlers = new handlers.Handlers;
+    var optsHandlers = this.opts["handlers"];
+    if (optsHandlers) {
+      if (util.isArray(optsHandlers) || !optsHandlers.forEach) {
+        throw new Error('transit writer "handlers" option must be a map');
+      }
+      var self = this;
+      optsHandlers.forEach(function(v, k) {
+        self.handlers.set(k, v);
+      });
+    }
+    this.unpack = this.opts["unpack"] || function(x) {
+      if (types.isArrayMap(x) && x.backingMap === null) {
+        return x._entries;
+      } else {
+        return false;
+      }
+    };
+    this.verbose = this.opts && this.opts["verbose"] || false;
+  };
+  writer.JSONMarshaller.prototype.handler = function(obj) {
+    var h = this.handlers.get(handlers.constructor(obj));
+    if (h != null) {
+      return h;
+    } else {
+      var tag = obj && obj["transitTag"];
+      if (tag) {
+        return this.handlers.get(tag);
+      } else {
+        return null;
+      }
+    }
+  };
+  writer.JSONMarshaller.prototype.registerHandler = function(ctor, handler) {
+    this.handlers.set(ctor, handler);
+  };
+  writer.JSONMarshaller.prototype.emitNil = function(asMapKey, cache) {
+    if (asMapKey) {
+      return this.emitString(d.ESC, "_", "", asMapKey, cache);
+    } else {
+      return null;
+    }
+  };
+  writer.JSONMarshaller.prototype.emitString = function(prefix, tag, s, asMapKey, cache) {
+    var string = prefix + tag + s;
+    if (cache) {
+      return cache.write(string, asMapKey);
+    } else {
+      return string;
+    }
+  };
+  writer.JSONMarshaller.prototype.emitBoolean = function(b, asMapKey, cache) {
+    if (asMapKey) {
+      var s = b.toString();
+      return this.emitString(d.ESC, "?", s[0], asMapKey, cache);
+    } else {
+      return b;
+    }
+  };
+  writer.JSONMarshaller.prototype.emitInteger = function(i, asMapKey, cache) {
+    if (i === Infinity) {
+      return this.emitString(d.ESC, "z", "INF", asMapKey, cache);
+    } else {
+      if (i === -Infinity) {
+        return this.emitString(d.ESC, "z", "-INF", asMapKey, cache);
+      } else {
+        if (isNaN(i)) {
+          return this.emitString(d.ESC, "z", "NaN", asMapKey, cache);
+        } else {
+          if (asMapKey || typeof i === "string" || i instanceof Long) {
+            return this.emitString(d.ESC, "i", i.toString(), asMapKey, cache);
+          } else {
+            return i;
+          }
+        }
+      }
+    }
+  };
+  writer.JSONMarshaller.prototype.emitDouble = function(d, asMapKey, cache) {
+    if (asMapKey) {
+      return this.emitString(d.ESC, "d", d, asMapKey, cache);
+    } else {
+      return d;
+    }
+  };
+  writer.JSONMarshaller.prototype.emitBinary = function(b, asMapKey, cache) {
+    return this.emitString(d.ESC, "b", b, asMapKey, cache);
+  };
+  writer.JSONMarshaller.prototype.emitQuoted = function(em, obj, cache) {
+    if (em.verbose) {
+      var ret = {}, k = this.emitString(d.ESC_TAG, "'", "", true, cache);
+      ret[k] = writer.marshal(this, obj, false, cache);
+      return ret;
+    } else {
+      return[this.emitString(d.ESC_TAG, "'", "", true, cache), writer.marshal(this, obj, false, cache)];
+    }
+  };
+  writer.emitObjects = function(em, iterable, cache) {
+    var ret = [];
+    if (util.isArray(iterable)) {
+      for (var i = 0;i < iterable.length;i++) {
+        ret.push(writer.marshal(em, iterable[i], false, cache));
+      }
+    } else {
+      iterable.forEach(function(v, i) {
+        ret.push(writer.marshal(em, v, false, cache));
+      });
+    }
+    return ret;
+  };
+  writer.emitArray = function(em, iterable, skip, cache) {
+    return writer.emitObjects(em, iterable, cache);
+  };
+  writer.isStringableKey = function(em, k) {
+    if (typeof k !== "string") {
+      var h = em.handler(k);
+      return h && h.tag(k).length === 1;
+    } else {
+      return true;
+    }
+  };
+  writer.stringableKeys = function(em, obj) {
+    var arr = em.unpack(obj), stringableKeys = true;
+    if (arr) {
+      for (var i = 0;i < arr.length;i += 2) {
+        stringableKeys = writer.isStringableKey(em, arr[i]);
+        if (!stringableKeys) {
+          break;
+        }
+      }
+      return stringableKeys;
+    } else {
+      if (obj.keys) {
+        var iter = obj.keys();
+        if (iter.next) {
+          step = iter.next();
+          while (!step.done) {
+            stringableKeys = writer.isStringableKey(em, step.value);
+            if (!stringableKeys) {
+              break;
+            }
+            step = iter.next();
+          }
+          return stringableKeys;
+        }
+      }
+    }
+    if (obj.forEach) {
+      obj.forEach(function(v, k) {
+        stringableKeys = stringableKeys && writer.isStringableKey(em, k);
+      });
+      return stringableKeys;
+    } else {
+      throw new Error("Cannot walk keys of object type " + handlers.constructor(obj).name);
+    }
+  };
+  writer.emitMap = function(em, obj, skip, cache) {
+    if (obj.constructor === Object || obj.forEach != null) {
+      if (em.verbose) {
+        if (obj.forEach != null) {
+          if (writer.stringableKeys(em, obj)) {
+            var ret = {};
+            obj.forEach(function(v, k) {
+              ret[writer.marshal(em, k, true, false)] = writer.marshal(em, v, false, cache);
+            });
+            return ret;
+          } else {
+            var arr = em.unpack(obj), rep = [], tag = em.emitString(d.ESC_TAG, "cmap", "", true, cache);
+            if (arr) {
+              for (var i = 0;i < arr.length;i += 2) {
+                rep.push(writer.marshal(em, arr[i], true, false));
+                rep.push(writer.marshal(em, arr[i + 1], false, cache));
+              }
+            } else {
+              obj.forEach(function(v, k) {
+                rep.push(writer.marshal(em, k, true, false));
+                rep.push(writer.marshal(em, v, false, cache));
+              });
+            }
+            var ret = {};
+            ret[tag] = rep;
+            return ret;
+          }
+        } else {
+          var ret = {}, ks = util.objectKeys(obj);
+          for (var i = 0;i < ks.length;i++) {
+            ret[writer.marshal(em, ks[i], true, false)] = writer.marshal(em, obj[ks[i]], false, cache);
+          }
+          return ret;
+        }
+      } else {
+        if (obj.forEach != null) {
+          if (writer.stringableKeys(em, obj)) {
+            var arr = em.unpack(obj), ret = ["^ "];
+            if (arr) {
+              for (var i = 0;i < arr.length;i += 2) {
+                ret.push(writer.marshal(em, arr[i], true, cache));
+                ret.push(writer.marshal(em, arr[i + 1], false, cache));
+              }
+            } else {
+              obj.forEach(function(v, k) {
+                ret.push(writer.marshal(em, k, true, cache));
+                ret.push(writer.marshal(em, v, false, cache));
+              });
+            }
+            return ret;
+          } else {
+            var arr = em.unpack(obj), rep = [], tag = em.emitString(d.ESC_TAG, "cmap", "", true, cache);
+            if (arr) {
+              for (var i = 0;i < arr.length;i += 2) {
+                rep.push(writer.marshal(em, arr[i], true, cache));
+                rep.push(writer.marshal(em, arr[i + 1], false, cache));
+              }
+            } else {
+              obj.forEach(function(v, k) {
+                rep.push(writer.marshal(em, k, true, cache));
+                rep.push(writer.marshal(em, v, false, cache));
+              });
+            }
+            return[tag, rep];
+          }
+        } else {
+          var ret = ["^ "], ks = util.objectKeys(obj);
+          for (var i = 0;i < ks.length;i++) {
+            ret.push(writer.marshal(em, ks[i], true, cache));
+            ret.push(writer.marshal(em, obj[ks[i]], false, cache));
+          }
+          return ret;
+        }
+      }
+    } else {
+      if (em.objectBuilder != null) {
+        return em.objectBuilder(obj, function(k) {
+          return writer.marshal(em, k, true, cache);
+        }, function(v) {
+          return writer.marshal(em, v, false, cache);
+        });
+      } else {
+        var name = handlers.constructor(obj).name, err = new Error("Cannot write " + name);
+        err.data = {obj:obj, type:name};
+        throw err;
+      }
+    }
+  };
+  writer.emitTaggedMap = function(em, tag, rep, skip, cache) {
+    if (em.verbose) {
+      var ret = {};
+      ret[em.emitString(d.ESC_TAG, tag, "", true, cache)] = writer.marshal(em, rep, false, cache);
+      return ret;
+    } else {
+      return[em.emitString(d.ESC_TAG, tag, "", true, cache), writer.marshal(em, rep, false, cache)];
+    }
+  };
+  writer.emitEncoded = function(em, h, tag, rep, obj, asMapKey, cache) {
+    if (tag.length === 1) {
+      if (typeof rep === "string") {
+        return em.emitString(d.ESC, tag, rep, asMapKey, cache);
+      } else {
+        if (asMapKey || em.preferStrings) {
+          var vh = em.verbose && h.getVerboseHandler();
+          if (vh) {
+            tag = vh.tag(obj);
+            rep = vh.stringRep(obj, vh);
+          } else {
+            rep = h.stringRep(obj, h);
+          }
+          if (rep !== null) {
+            return em.emitString(d.ESC, tag, rep, asMapKey, cache);
+          } else {
+            var err = new Error('Tag "' + tag + '" cannot be encoded as string');
+            err.data = {tag:tag, rep:rep, obj:obj};
+            throw err;
+          }
+        } else {
+          return writer.emitTaggedMap(em, tag, rep, asMapKey, cache);
+        }
+      }
+    } else {
+      return writer.emitTaggedMap(em, tag, rep, asMapKey, cache);
+    }
+  };
+  writer.marshal = function(em, obj, asMapKey, cache) {
+    var h = em.handler(obj), tag = h ? h.tag(obj) : null, rep = h ? h.rep(obj) : null;
+    if (h != null && tag != null) {
+      switch(tag) {
+        case "_":
+          return em.emitNil(asMapKey, cache);
+          break;
+        case "s":
+          return em.emitString("", "", writer.escape(rep), asMapKey, cache);
+          break;
+        case "?":
+          return em.emitBoolean(rep, asMapKey, cache);
+          break;
+        case "i":
+          return em.emitInteger(rep, asMapKey, cache);
+          break;
+        case "d":
+          return em.emitDouble(rep, asMapKey, cache);
+          break;
+        case "b":
+          return em.emitBinary(rep, asMapKey, cache);
+          break;
+        case "'":
+          return em.emitQuoted(em, rep, cache);
+          break;
+        case "array":
+          return writer.emitArray(em, rep, asMapKey, cache);
+          break;
+        case "map":
+          return writer.emitMap(em, rep, asMapKey, cache);
+          break;
+        default:
+          return writer.emitEncoded(em, h, tag, rep, obj, asMapKey, cache);
+          break;
+      }
+    } else {
+      var name = handlers.constructor(obj).name, err = new Error("Cannot write " + name);
+      err.data = {obj:obj, type:name};
+      throw err;
+    }
+  };
+  writer.maybeQuoted = function(em, obj) {
+    var h = em.handler(obj);
+    if (h != null) {
+      if (h.tag(obj).length === 1) {
+        return types.quoted(obj);
+      } else {
+        return obj;
+      }
+    } else {
+      var name = handlers.constructor(obj).name, err = new Error("Cannot write " + name);
+      err.data = {obj:obj, type:name};
+      throw err;
+    }
+  };
+  writer.marshalTop = function(em, obj, asMapKey, cache) {
+    return JSON.stringify(writer.marshal(em, writer.maybeQuoted(em, obj), asMapKey, cache));
+  };
+  writer.Writer = function(marshaller, options) {
+    this._marshaller = marshaller;
+    this.options = options || {};
+    if (this.options["cache"] === false) {
+      this.cache = null;
+    } else {
+      this.cache = this.options["cache"] ? this.options["cache"] : new caching.WriteCache;
+    }
+  };
+  writer.Writer.prototype.marshaller = function() {
+    return this._marshaller;
+  };
+  writer.Writer.prototype["marshaller"] = writer.Writer.prototype.marshaller;
+  writer.Writer.prototype.write = function(obj, opts) {
+    var ret = null, ropts = opts || {}, asMapKey = ropts["asMapKey"] || false, cache = this._marshaller.verbose ? false : this.cache;
+    if (ropts["marshalTop"] === false) {
+      ret = writer.marshal(this._marshaller, obj, asMapKey, cache);
+    } else {
+      ret = writer.marshalTop(this._marshaller, obj, asMapKey, cache);
+    }
+    if (this.cache != null) {
+      this.cache.clear();
+    }
+    return ret;
+  };
+  writer.Writer.prototype["write"] = writer.Writer.prototype.write;
+  writer.Writer.prototype.register = function(type, handler) {
+    this._marshaller.registerHandler(type, handler);
+  };
+  writer.Writer.prototype["register"] = writer.Writer.prototype.register;
+});
+goog.provide("com.cognitect.transit");
+goog.require("com.cognitect.transit.impl.reader");
+goog.require("com.cognitect.transit.impl.writer");
+goog.require("com.cognitect.transit.types");
+goog.require("com.cognitect.transit.eq");
+goog.require("com.cognitect.transit.impl.decoder");
+var TRANSIT_NODE_TARGET = false;
+var TRANSIT_BROWSER_TARGET = false;
+var TRANSIT_BROWSER_AMD_TARGET = false;
+goog.scope(function() {
+  var transit = com.cognitect.transit;
+  var reader = com.cognitect.transit.impl.reader, writer = com.cognitect.transit.impl.writer, decoder = com.cognitect.transit.impl.decoder, types = com.cognitect.transit.types, eq = com.cognitect.transit.eq;
+  transit.reader = function(type, opts) {
+    if (type === "json" || type === "json-verbose" || type == null) {
+      type = "json";
+      var unmarshaller = new reader.JSONUnmarshaller(opts);
+      return new reader.Reader(unmarshaller, opts);
+    } else {
+      throw new Error("Cannot create reader of type " + type);
+    }
+  };
+  transit.writer = function(type, opts) {
+    if (type === "json" || type === "json-verbose" || type == null) {
+      if (type === "json-verbose") {
+        if (opts == null) {
+          opts = {};
+        }
+        opts["verbose"] = true;
+      }
+      type = "json";
+      var marshaller = new writer.JSONMarshaller(opts);
+      return new writer.Writer(marshaller, opts);
+    } else {
+      var err = new Error('Type must be "json"');
+      err.data = {type:type};
+      throw err;
+    }
+  };
+  transit.makeWriteHandler = function(obj) {
+    var Handler = function() {
+    };
+    Handler.prototype.tag = obj["tag"];
+    Handler.prototype.rep = obj["rep"];
+    Handler.prototype.stringRep = obj["stringRep"];
+    Handler.prototype.getVerboseHandler = obj["getVerboseHandler"];
+    return new Handler;
+  };
+  transit.makeBuilder = function(obj) {
+    var Builder = function() {
+    };
+    Builder.prototype.init = obj["init"];
+    Builder.prototype.add = obj["add"];
+    Builder.prototype.finalize = obj["finalize"];
+    Builder.prototype.fromArray = obj["fromArray"];
+    return new Builder;
+  };
+  transit.date = types.date;
+  transit.integer = types.intValue;
+  transit.isInteger = types.isInteger;
+  transit.uuid = types.uuid;
+  transit.isUUID = types.isUUID;
+  transit.bigInt = types.bigInteger;
+  transit.isBigInt = types.isBigInteger;
+  transit.bigDec = types.bigDecimalValue;
+  transit.isBigDec = types.isBigDecimal;
+  transit.keyword = types.keyword;
+  transit.isKeyword = types.isKeyword;
+  transit.symbol = types.symbol;
+  transit.isSymbol = types.isSymbol;
+  transit.binary = types.binary;
+  transit.isBinary = types.isBinary;
+  transit.uri = types.uri;
+  transit.isURI = types.isURI;
+  transit.map = types.map;
+  transit.isMap = types.isMap;
+  transit.set = types.set;
+  transit.isSet = types.isSet;
+  transit.list = types.list;
+  transit.isList = types.isList;
+  transit.quoted = types.quoted;
+  transit.isQuoted = types.isQuoted;
+  transit.tagged = types.taggedValue;
+  transit.isTaggedValue = types.isTaggedValue;
+  transit.link = types.link;
+  transit.isLink = types.isLink;
+  transit.hash = eq.hashCode;
+  transit.hashMapLike = eq.hashMapLike;
+  transit.hashMapLike = eq.hashArrayLike;
+  transit.equals = eq.equals;
+  transit.extendToEQ = eq.extendToEQ;
+  transit.mapToObject = function(m) {
+    var ret = {};
+    m.forEach(function(v, k) {
+      if (typeof k !== "string") {
+        throw Error("Cannot convert map with non-string keys");
+      } else {
+        ret[k] = v;
+      }
+    });
+    return ret;
+  };
+  transit.decoder = decoder.decoder;
+  transit.UUIDfromString = types.UUIDfromString;
+  transit.randomUUID = types.randomUUID;
+  transit.stringableKeys = writer.stringableKeys;
+  if (TRANSIT_BROWSER_TARGET) {
+    goog.exportSymbol("transit.reader", transit.reader);
+    goog.exportSymbol("transit.writer", transit.writer);
+    goog.exportSymbol("transit.makeBuilder", transit.makeBuilder);
+    goog.exportSymbol("transit.makeWriteHandler", transit.makeWriteHandler);
+    goog.exportSymbol("transit.date", types.date);
+    goog.exportSymbol("transit.integer", types.intValue);
+    goog.exportSymbol("transit.isInteger", types.isInteger);
+    goog.exportSymbol("transit.uuid", types.uuid);
+    goog.exportSymbol("transit.isUUID", types.isUUID);
+    goog.exportSymbol("transit.bigInt", types.bigInteger);
+    goog.exportSymbol("transit.isBigInt", types.isBigInteger);
+    goog.exportSymbol("transit.bigDec", types.bigDecimalValue);
+    goog.exportSymbol("transit.isBigDec", types.isBigDecimal);
+    goog.exportSymbol("transit.keyword", types.keyword);
+    goog.exportSymbol("transit.isKeyword", types.isKeyword);
+    goog.exportSymbol("transit.symbol", types.symbol);
+    goog.exportSymbol("transit.isSymbol", types.isSymbol);
+    goog.exportSymbol("transit.binary", types.binary);
+    goog.exportSymbol("transit.isBinary", types.isBinary);
+    goog.exportSymbol("transit.uri", types.uri);
+    goog.exportSymbol("transit.isURI", types.isURI);
+    goog.exportSymbol("transit.map", types.map);
+    goog.exportSymbol("transit.isMap", types.isMap);
+    goog.exportSymbol("transit.set", types.set);
+    goog.exportSymbol("transit.isSet", types.isSet);
+    goog.exportSymbol("transit.list", types.list);
+    goog.exportSymbol("transit.isList", types.isList);
+    goog.exportSymbol("transit.quoted", types.quoted);
+    goog.exportSymbol("transit.isQuoted", types.isQuoted);
+    goog.exportSymbol("transit.tagged", types.taggedValue);
+    goog.exportSymbol("transit.isTaggedValue", types.isTaggedValue);
+    goog.exportSymbol("transit.link", types.link);
+    goog.exportSymbol("transit.isLink", types.isLink);
+    goog.exportSymbol("transit.hash", eq.hashCode);
+    goog.exportSymbol("transit.hashMapLike", eq.hashMapLike);
+    goog.exportSymbol("transit.hashArrayLike", eq.hashArrayLike);
+    goog.exportSymbol("transit.equals", eq.equals);
+    goog.exportSymbol("transit.extendToEQ", eq.extendToEQ);
+    goog.exportSymbol("transit.mapToObject", transit.mapToObject);
+    goog.exportSymbol("transit.decoder", decoder.decoder);
+    goog.exportSymbol("transit.UUIDfromString", types.UUIDfromString);
+    goog.exportSymbol("transit.randomUUID", types.randomUUID);
+    goog.exportSymbol("transit.stringableKeys", writer.stringableKeys);
+  }
+  if (TRANSIT_NODE_TARGET) {
+    module.exports = {reader:transit.reader, writer:transit.writer, makeBuilder:transit.makeBuilder, makeWriteHandler:transit.makeWriteHandler, date:types.date, integer:types.intValue, isInteger:types.isInteger, uuid:types.uuid, isUUID:types.isUUID, bigInt:types.bigInteger, isBigInt:types.isBigInteger, bigDec:types.bigDecimalValue, isBigDec:types.isBigDecimal, keyword:types.keyword, isKeyword:types.isKeyword, symbol:types.symbol, isSymbol:types.isSymbol, binary:types.binary, isBinary:types.isBinary, 
+    uri:types.uri, isURI:types.isURI, map:types.map, isMap:types.isMap, set:types.set, isSet:types.isSet, list:types.list, isList:types.isList, quoted:types.quoted, isQuoted:types.isQuoted, tagged:types.taggedValue, isTaggedValue:types.isTaggedValue, link:types.link, isLink:types.isLink, hash:eq.hashCode, hashArrayLike:eq.hashArrayLike, hashMapLike:eq.hashMapLike, equals:eq.equals, extendToEQ:eq.extendToEQ, mapToObject:transit.mapToObject, decoder:decoder.decoder, UUIDfromString:types.UUIDfromString, 
+    randomUUID:types.randomUUID, stringableKeys:writer.stringableKeys};
+  }
+});
+goog.provide("cognitect.transit");
+goog.require("cljs.core");
+goog.require("goog.math.Long");
+goog.require("com.cognitect.transit.eq");
+goog.require("com.cognitect.transit.eq");
+goog.require("com.cognitect.transit.types");
+goog.require("com.cognitect.transit.types");
+goog.require("com.cognitect.transit");
+goog.require("com.cognitect.transit");
+cljs.core.UUID.prototype.cljs$core$IEquiv$ = true;
+cljs.core.UUID.prototype.cljs$core$IEquiv$_equiv$arity$2 = function(this$, other) {
+  var this$__$1 = this;
+  if (other instanceof cljs.core.UUID) {
+    return this$__$1.uuid === other.uuid;
+  } else {
+    if (other instanceof com.cognitect.transit.types.UUID) {
+      return this$__$1.uuid === other.toString();
+    } else {
+      return false;
+    }
+  }
+};
+com.cognitect.transit.types.TaggedValue.prototype.cljs$core$IEquiv$ = true;
+com.cognitect.transit.types.TaggedValue.prototype.cljs$core$IEquiv$_equiv$arity$2 = function(this$, other) {
+  var this$__$1 = this;
+  return this$__$1.equiv(other);
+};
+com.cognitect.transit.types.UUID.prototype.cljs$core$IEquiv$ = true;
+com.cognitect.transit.types.UUID.prototype.cljs$core$IEquiv$_equiv$arity$2 = function(this$, other) {
+  var this$__$1 = this;
+  if (other instanceof cljs.core.UUID) {
+    return cljs.core._equiv.call(null, other, this$__$1);
+  } else {
+    return this$__$1.equiv(other);
+  }
+};
+goog.math.Long.prototype.cljs$core$IEquiv$ = true;
+goog.math.Long.prototype.cljs$core$IEquiv$_equiv$arity$2 = function(this$, other) {
+  var this$__$1 = this;
+  return this$__$1.equiv(other);
+};
+com.cognitect.transit.types.TaggedValue.prototype.cljs$core$IHash$ = true;
+com.cognitect.transit.types.TaggedValue.prototype.cljs$core$IHash$_hash$arity$1 = function(this$) {
+  var this$__$1 = this;
+  return com.cognitect.transit.eq.hashCode.call(null, this$__$1);
+};
+com.cognitect.transit.types.UUID.prototype.cljs$core$IHash$ = true;
+com.cognitect.transit.types.UUID.prototype.cljs$core$IHash$_hash$arity$1 = function(this$) {
+  var this$__$1 = this;
+  return com.cognitect.transit.eq.hashCode.call(null, this$__$1);
+};
+goog.math.Long.prototype.cljs$core$IHash$ = true;
+goog.math.Long.prototype.cljs$core$IHash$_hash$arity$1 = function(this$) {
+  var this$__$1 = this;
+  return com.cognitect.transit.eq.hashCode.call(null, this$__$1);
+};
+cognitect.transit.opts_merge = function opts_merge(a, b) {
+  var seq__5135_5139 = cljs.core.seq.call(null, cljs.core.js_keys.call(null, b));
+  var chunk__5136_5140 = null;
+  var count__5137_5141 = 0;
+  var i__5138_5142 = 0;
+  while (true) {
+    if (i__5138_5142 < count__5137_5141) {
+      var k_5143 = cljs.core._nth.call(null, chunk__5136_5140, i__5138_5142);
+      var v_5144 = b[k_5143];
+      a[k_5143] = v_5144;
+      var G__5145 = seq__5135_5139;
+      var G__5146 = chunk__5136_5140;
+      var G__5147 = count__5137_5141;
+      var G__5148 = i__5138_5142 + 1;
+      seq__5135_5139 = G__5145;
+      chunk__5136_5140 = G__5146;
+      count__5137_5141 = G__5147;
+      i__5138_5142 = G__5148;
+      continue;
+    } else {
+      var temp__4126__auto___5149 = cljs.core.seq.call(null, seq__5135_5139);
+      if (temp__4126__auto___5149) {
+        var seq__5135_5150__$1 = temp__4126__auto___5149;
+        if (cljs.core.chunked_seq_QMARK_.call(null, seq__5135_5150__$1)) {
+          var c__4410__auto___5151 = cljs.core.chunk_first.call(null, seq__5135_5150__$1);
+          var G__5152 = cljs.core.chunk_rest.call(null, seq__5135_5150__$1);
+          var G__5153 = c__4410__auto___5151;
+          var G__5154 = cljs.core.count.call(null, c__4410__auto___5151);
+          var G__5155 = 0;
+          seq__5135_5139 = G__5152;
+          chunk__5136_5140 = G__5153;
+          count__5137_5141 = G__5154;
+          i__5138_5142 = G__5155;
+          continue;
+        } else {
+          var k_5156 = cljs.core.first.call(null, seq__5135_5150__$1);
+          var v_5157 = b[k_5156];
+          a[k_5156] = v_5157;
+          var G__5158 = cljs.core.next.call(null, seq__5135_5150__$1);
+          var G__5159 = null;
+          var G__5160 = 0;
+          var G__5161 = 0;
+          seq__5135_5139 = G__5158;
+          chunk__5136_5140 = G__5159;
+          count__5137_5141 = G__5160;
+          i__5138_5142 = G__5161;
+          continue;
+        }
+      } else {
+      }
+    }
+    break;
+  }
+  return a;
+};
+cognitect.transit.MapBuilder = function() {
+};
+cognitect.transit.MapBuilder.cljs$lang$type = true;
+cognitect.transit.MapBuilder.cljs$lang$ctorStr = "cognitect.transit/MapBuilder";
+cognitect.transit.MapBuilder.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+  return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/MapBuilder");
+};
+cognitect.transit.MapBuilder.prototype.init = function(node) {
+  var self__ = this;
+  var _ = this;
+  return cljs.core.transient$.call(null, cljs.core.PersistentArrayMap.EMPTY);
+};
+cognitect.transit.MapBuilder.prototype.add = function(m, k, v, node) {
+  var self__ = this;
+  var _ = this;
+  return cljs.core.assoc_BANG_.call(null, m, k, v);
+};
+cognitect.transit.MapBuilder.prototype.finalize = function(m, node) {
+  var self__ = this;
+  var _ = this;
+  return cljs.core.persistent_BANG_.call(null, m);
+};
+cognitect.transit.MapBuilder.prototype.fromArray = function(arr, node) {
+  var self__ = this;
+  var _ = this;
+  return cljs.core.PersistentArrayMap.fromArray.call(null, arr, true, true);
+};
+cognitect.transit.__GT_MapBuilder = function __GT_MapBuilder() {
+  return new cognitect.transit.MapBuilder;
+};
+cognitect.transit.VectorBuilder = function() {
+};
+cognitect.transit.VectorBuilder.cljs$lang$type = true;
+cognitect.transit.VectorBuilder.cljs$lang$ctorStr = "cognitect.transit/VectorBuilder";
+cognitect.transit.VectorBuilder.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+  return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/VectorBuilder");
+};
+cognitect.transit.VectorBuilder.prototype.init = function(node) {
+  var self__ = this;
+  var _ = this;
+  return cljs.core.transient$.call(null, cljs.core.PersistentVector.EMPTY);
+};
+cognitect.transit.VectorBuilder.prototype.add = function(v, x, node) {
+  var self__ = this;
+  var _ = this;
+  return cljs.core.conj_BANG_.call(null, v, x);
+};
+cognitect.transit.VectorBuilder.prototype.finalize = function(v, node) {
+  var self__ = this;
+  var _ = this;
+  return cljs.core.persistent_BANG_.call(null, v);
+};
+cognitect.transit.VectorBuilder.prototype.fromArray = function(arr, node) {
+  var self__ = this;
+  var _ = this;
+  return cljs.core.PersistentVector.fromArray.call(null, arr, true);
+};
+cognitect.transit.__GT_VectorBuilder = function __GT_VectorBuilder() {
+  return new cognitect.transit.VectorBuilder;
+};
+cognitect.transit.reader = function() {
+  var reader = null;
+  var reader__1 = function(type) {
+    return reader.call(null, type, null);
+  };
+  var reader__2 = function(type, opts) {
+    return com.cognitect.transit.reader.call(null, cljs.core.name.call(null, type), cognitect.transit.opts_merge.call(null, {"prefersStrings":false, "arrayBuilder":new cognitect.transit.VectorBuilder, "mapBuilder":new cognitect.transit.MapBuilder, "handlers":cljs.core.clj__GT_js.call(null, cljs.core.merge.call(null, new cljs.core.PersistentArrayMap(null, 5, ["$", function(v) {
+      return cljs.core.symbol.call(null, v);
+    }, ":", function(v) {
+      return cljs.core.keyword.call(null, v);
+    }, "set", function(v) {
+      return cljs.core.into.call(null, cljs.core.PersistentHashSet.EMPTY, v);
+    }, "list", function(v) {
+      return cljs.core.into.call(null, cljs.core.List.EMPTY, v.reverse());
+    }, "cmap", function(v) {
+      var i = 0;
+      var ret = cljs.core.transient$.call(null, cljs.core.PersistentArrayMap.EMPTY);
+      while (true) {
+        if (i < v.length) {
+          var G__5162 = i + 2;
+          var G__5163 = cljs.core.assoc_BANG_.call(null, ret, v[i], v[i + 1]);
+          i = G__5162;
+          ret = G__5163;
+          continue;
+        } else {
+          return cljs.core.persistent_BANG_.call(null, ret);
+        }
+        break;
+      }
+    }], null), (new cljs.core.Keyword(null, "handlers", "handlers", 79528781)).cljs$core$IFn$_invoke$arity$1(opts)))}, cljs.core.clj__GT_js.call(null, cljs.core.dissoc.call(null, opts, new cljs.core.Keyword(null, "handlers", "handlers", 79528781)))));
+  };
+  reader = function(type, opts) {
+    switch(arguments.length) {
+      case 1:
+        return reader__1.call(this, type);
+      case 2:
+        return reader__2.call(this, type, opts);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  reader.cljs$core$IFn$_invoke$arity$1 = reader__1;
+  reader.cljs$core$IFn$_invoke$arity$2 = reader__2;
+  return reader;
+}();
+cognitect.transit.read = function read(r, str) {
+  return r.read(str);
+};
+cognitect.transit.KeywordHandler = function() {
+};
+cognitect.transit.KeywordHandler.cljs$lang$type = true;
+cognitect.transit.KeywordHandler.cljs$lang$ctorStr = "cognitect.transit/KeywordHandler";
+cognitect.transit.KeywordHandler.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+  return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/KeywordHandler");
+};
+cognitect.transit.KeywordHandler.prototype.tag = function(v) {
+  var self__ = this;
+  var _ = this;
+  return ":";
+};
+cognitect.transit.KeywordHandler.prototype.rep = function(v) {
+  var self__ = this;
+  var _ = this;
+  return v.fqn;
+};
+cognitect.transit.KeywordHandler.prototype.stringRep = function(v) {
+  var self__ = this;
+  var _ = this;
+  return v.fqn;
+};
+cognitect.transit.__GT_KeywordHandler = function __GT_KeywordHandler() {
+  return new cognitect.transit.KeywordHandler;
+};
+cognitect.transit.SymbolHandler = function() {
+};
+cognitect.transit.SymbolHandler.cljs$lang$type = true;
+cognitect.transit.SymbolHandler.cljs$lang$ctorStr = "cognitect.transit/SymbolHandler";
+cognitect.transit.SymbolHandler.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+  return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/SymbolHandler");
+};
+cognitect.transit.SymbolHandler.prototype.tag = function(v) {
+  var self__ = this;
+  var _ = this;
+  return "$";
+};
+cognitect.transit.SymbolHandler.prototype.rep = function(v) {
+  var self__ = this;
+  var _ = this;
+  return v.str;
+};
+cognitect.transit.SymbolHandler.prototype.stringRep = function(v) {
+  var self__ = this;
+  var _ = this;
+  return v.str;
+};
+cognitect.transit.__GT_SymbolHandler = function __GT_SymbolHandler() {
+  return new cognitect.transit.SymbolHandler;
+};
+cognitect.transit.ListHandler = function() {
+};
+cognitect.transit.ListHandler.cljs$lang$type = true;
+cognitect.transit.ListHandler.cljs$lang$ctorStr = "cognitect.transit/ListHandler";
+cognitect.transit.ListHandler.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+  return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/ListHandler");
+};
+cognitect.transit.ListHandler.prototype.tag = function(v) {
+  var self__ = this;
+  var _ = this;
+  return "list";
+};
+cognitect.transit.ListHandler.prototype.rep = function(v) {
+  var self__ = this;
+  var _ = this;
+  var ret = [];
+  var seq__5164_5168 = cljs.core.seq.call(null, v);
+  var chunk__5165_5169 = null;
+  var count__5166_5170 = 0;
+  var i__5167_5171 = 0;
+  while (true) {
+    if (i__5167_5171 < count__5166_5170) {
+      var x_5172 = cljs.core._nth.call(null, chunk__5165_5169, i__5167_5171);
+      ret.push(x_5172);
+      var G__5173 = seq__5164_5168;
+      var G__5174 = chunk__5165_5169;
+      var G__5175 = count__5166_5170;
+      var G__5176 = i__5167_5171 + 1;
+      seq__5164_5168 = G__5173;
+      chunk__5165_5169 = G__5174;
+      count__5166_5170 = G__5175;
+      i__5167_5171 = G__5176;
+      continue;
+    } else {
+      var temp__4126__auto___5177 = cljs.core.seq.call(null, seq__5164_5168);
+      if (temp__4126__auto___5177) {
+        var seq__5164_5178__$1 = temp__4126__auto___5177;
+        if (cljs.core.chunked_seq_QMARK_.call(null, seq__5164_5178__$1)) {
+          var c__4410__auto___5179 = cljs.core.chunk_first.call(null, seq__5164_5178__$1);
+          var G__5180 = cljs.core.chunk_rest.call(null, seq__5164_5178__$1);
+          var G__5181 = c__4410__auto___5179;
+          var G__5182 = cljs.core.count.call(null, c__4410__auto___5179);
+          var G__5183 = 0;
+          seq__5164_5168 = G__5180;
+          chunk__5165_5169 = G__5181;
+          count__5166_5170 = G__5182;
+          i__5167_5171 = G__5183;
+          continue;
+        } else {
+          var x_5184 = cljs.core.first.call(null, seq__5164_5178__$1);
+          ret.push(x_5184);
+          var G__5185 = cljs.core.next.call(null, seq__5164_5178__$1);
+          var G__5186 = null;
+          var G__5187 = 0;
+          var G__5188 = 0;
+          seq__5164_5168 = G__5185;
+          chunk__5165_5169 = G__5186;
+          count__5166_5170 = G__5187;
+          i__5167_5171 = G__5188;
+          continue;
+        }
+      } else {
+      }
+    }
+    break;
+  }
+  return com.cognitect.transit.tagged.call(null, "array", ret);
+};
+cognitect.transit.ListHandler.prototype.stringRep = function(v) {
+  var self__ = this;
+  var _ = this;
+  return null;
+};
+cognitect.transit.__GT_ListHandler = function __GT_ListHandler() {
+  return new cognitect.transit.ListHandler;
+};
+cognitect.transit.MapHandler = function() {
+};
+cognitect.transit.MapHandler.cljs$lang$type = true;
+cognitect.transit.MapHandler.cljs$lang$ctorStr = "cognitect.transit/MapHandler";
+cognitect.transit.MapHandler.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+  return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/MapHandler");
+};
+cognitect.transit.MapHandler.prototype.tag = function(v) {
+  var self__ = this;
+  var _ = this;
+  return "map";
+};
+cognitect.transit.MapHandler.prototype.rep = function(v) {
+  var self__ = this;
+  var _ = this;
+  return v;
+};
+cognitect.transit.MapHandler.prototype.stringRep = function(v) {
+  var self__ = this;
+  var _ = this;
+  return null;
+};
+cognitect.transit.__GT_MapHandler = function __GT_MapHandler() {
+  return new cognitect.transit.MapHandler;
+};
+cognitect.transit.SetHandler = function() {
+};
+cognitect.transit.SetHandler.cljs$lang$type = true;
+cognitect.transit.SetHandler.cljs$lang$ctorStr = "cognitect.transit/SetHandler";
+cognitect.transit.SetHandler.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+  return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/SetHandler");
+};
+cognitect.transit.SetHandler.prototype.tag = function(v) {
+  var self__ = this;
+  var _ = this;
+  return "set";
+};
+cognitect.transit.SetHandler.prototype.rep = function(v) {
+  var self__ = this;
+  var _ = this;
+  var ret = [];
+  var seq__5189_5193 = cljs.core.seq.call(null, v);
+  var chunk__5190_5194 = null;
+  var count__5191_5195 = 0;
+  var i__5192_5196 = 0;
+  while (true) {
+    if (i__5192_5196 < count__5191_5195) {
+      var x_5197 = cljs.core._nth.call(null, chunk__5190_5194, i__5192_5196);
+      ret.push(x_5197);
+      var G__5198 = seq__5189_5193;
+      var G__5199 = chunk__5190_5194;
+      var G__5200 = count__5191_5195;
+      var G__5201 = i__5192_5196 + 1;
+      seq__5189_5193 = G__5198;
+      chunk__5190_5194 = G__5199;
+      count__5191_5195 = G__5200;
+      i__5192_5196 = G__5201;
+      continue;
+    } else {
+      var temp__4126__auto___5202 = cljs.core.seq.call(null, seq__5189_5193);
+      if (temp__4126__auto___5202) {
+        var seq__5189_5203__$1 = temp__4126__auto___5202;
+        if (cljs.core.chunked_seq_QMARK_.call(null, seq__5189_5203__$1)) {
+          var c__4410__auto___5204 = cljs.core.chunk_first.call(null, seq__5189_5203__$1);
+          var G__5205 = cljs.core.chunk_rest.call(null, seq__5189_5203__$1);
+          var G__5206 = c__4410__auto___5204;
+          var G__5207 = cljs.core.count.call(null, c__4410__auto___5204);
+          var G__5208 = 0;
+          seq__5189_5193 = G__5205;
+          chunk__5190_5194 = G__5206;
+          count__5191_5195 = G__5207;
+          i__5192_5196 = G__5208;
+          continue;
+        } else {
+          var x_5209 = cljs.core.first.call(null, seq__5189_5203__$1);
+          ret.push(x_5209);
+          var G__5210 = cljs.core.next.call(null, seq__5189_5203__$1);
+          var G__5211 = null;
+          var G__5212 = 0;
+          var G__5213 = 0;
+          seq__5189_5193 = G__5210;
+          chunk__5190_5194 = G__5211;
+          count__5191_5195 = G__5212;
+          i__5192_5196 = G__5213;
+          continue;
+        }
+      } else {
+      }
+    }
+    break;
+  }
+  return com.cognitect.transit.tagged.call(null, "array", ret);
+};
+cognitect.transit.SetHandler.prototype.stringRep = function() {
+  var self__ = this;
+  var v = this;
+  return null;
+};
+cognitect.transit.__GT_SetHandler = function __GT_SetHandler() {
+  return new cognitect.transit.SetHandler;
+};
+cognitect.transit.VectorHandler = function() {
+};
+cognitect.transit.VectorHandler.cljs$lang$type = true;
+cognitect.transit.VectorHandler.cljs$lang$ctorStr = "cognitect.transit/VectorHandler";
+cognitect.transit.VectorHandler.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+  return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/VectorHandler");
+};
+cognitect.transit.VectorHandler.prototype.tag = function(v) {
+  var self__ = this;
+  var _ = this;
+  return "array";
+};
+cognitect.transit.VectorHandler.prototype.rep = function(v) {
+  var self__ = this;
+  var _ = this;
+  var ret = [];
+  var seq__5214_5218 = cljs.core.seq.call(null, v);
+  var chunk__5215_5219 = null;
+  var count__5216_5220 = 0;
+  var i__5217_5221 = 0;
+  while (true) {
+    if (i__5217_5221 < count__5216_5220) {
+      var x_5222 = cljs.core._nth.call(null, chunk__5215_5219, i__5217_5221);
+      ret.push(x_5222);
+      var G__5223 = seq__5214_5218;
+      var G__5224 = chunk__5215_5219;
+      var G__5225 = count__5216_5220;
+      var G__5226 = i__5217_5221 + 1;
+      seq__5214_5218 = G__5223;
+      chunk__5215_5219 = G__5224;
+      count__5216_5220 = G__5225;
+      i__5217_5221 = G__5226;
+      continue;
+    } else {
+      var temp__4126__auto___5227 = cljs.core.seq.call(null, seq__5214_5218);
+      if (temp__4126__auto___5227) {
+        var seq__5214_5228__$1 = temp__4126__auto___5227;
+        if (cljs.core.chunked_seq_QMARK_.call(null, seq__5214_5228__$1)) {
+          var c__4410__auto___5229 = cljs.core.chunk_first.call(null, seq__5214_5228__$1);
+          var G__5230 = cljs.core.chunk_rest.call(null, seq__5214_5228__$1);
+          var G__5231 = c__4410__auto___5229;
+          var G__5232 = cljs.core.count.call(null, c__4410__auto___5229);
+          var G__5233 = 0;
+          seq__5214_5218 = G__5230;
+          chunk__5215_5219 = G__5231;
+          count__5216_5220 = G__5232;
+          i__5217_5221 = G__5233;
+          continue;
+        } else {
+          var x_5234 = cljs.core.first.call(null, seq__5214_5228__$1);
+          ret.push(x_5234);
+          var G__5235 = cljs.core.next.call(null, seq__5214_5228__$1);
+          var G__5236 = null;
+          var G__5237 = 0;
+          var G__5238 = 0;
+          seq__5214_5218 = G__5235;
+          chunk__5215_5219 = G__5236;
+          count__5216_5220 = G__5237;
+          i__5217_5221 = G__5238;
+          continue;
+        }
+      } else {
+      }
+    }
+    break;
+  }
+  return ret;
+};
+cognitect.transit.VectorHandler.prototype.stringRep = function(v) {
+  var self__ = this;
+  var _ = this;
+  return null;
+};
+cognitect.transit.__GT_VectorHandler = function __GT_VectorHandler() {
+  return new cognitect.transit.VectorHandler;
+};
+cognitect.transit.UUIDHandler = function() {
+};
+cognitect.transit.UUIDHandler.cljs$lang$type = true;
+cognitect.transit.UUIDHandler.cljs$lang$ctorStr = "cognitect.transit/UUIDHandler";
+cognitect.transit.UUIDHandler.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+  return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/UUIDHandler");
+};
+cognitect.transit.UUIDHandler.prototype.tag = function(v) {
+  var self__ = this;
+  var _ = this;
+  return "u";
+};
+cognitect.transit.UUIDHandler.prototype.rep = function(v) {
+  var self__ = this;
+  var _ = this;
+  return v.uuid;
+};
+cognitect.transit.UUIDHandler.prototype.stringRep = function(v) {
+  var self__ = this;
+  var this$ = this;
+  return this$.rep(v);
+};
+cognitect.transit.__GT_UUIDHandler = function __GT_UUIDHandler() {
+  return new cognitect.transit.UUIDHandler;
+};
+cognitect.transit.writer = function() {
+  var writer = null;
+  var writer__1 = function(type) {
+    return writer.call(null, type, null);
+  };
+  var writer__2 = function(type, opts) {
+    var keyword_handler = new cognitect.transit.KeywordHandler;
+    var symbol_handler = new cognitect.transit.SymbolHandler;
+    var list_handler = new cognitect.transit.ListHandler;
+    var map_handler = new cognitect.transit.MapHandler;
+    var set_handler = new cognitect.transit.SetHandler;
+    var vector_handler = new cognitect.transit.VectorHandler;
+    var uuid_handler = new cognitect.transit.UUIDHandler;
+    var handlers = cljs.core.merge.call(null, cljs.core.PersistentHashMap.fromArrays([cljs.core.PersistentHashMap, cljs.core.Cons, cljs.core.PersistentArrayMap, cljs.core.NodeSeq, cljs.core.PersistentQueue, cljs.core.IndexedSeq, cljs.core.Keyword, cljs.core.EmptyList, cljs.core.LazySeq, cljs.core.Subvec, cljs.core.PersistentQueueSeq, cljs.core.ArrayNodeSeq, cljs.core.ValSeq, cljs.core.PersistentArrayMapSeq, cljs.core.PersistentVector, cljs.core.List, cljs.core.RSeq, cljs.core.PersistentHashSet, cljs.core.PersistentTreeMap, 
+    cljs.core.KeySeq, cljs.core.ChunkedSeq, cljs.core.PersistentTreeSet, cljs.core.ChunkedCons, cljs.core.Symbol, cljs.core.UUID, cljs.core.Range, cljs.core.PersistentTreeMapSeq], [map_handler, list_handler, map_handler, list_handler, list_handler, list_handler, keyword_handler, list_handler, list_handler, vector_handler, list_handler, list_handler, list_handler, list_handler, vector_handler, list_handler, list_handler, set_handler, map_handler, list_handler, list_handler, set_handler, list_handler, 
+    symbol_handler, uuid_handler, list_handler, list_handler]), (new cljs.core.Keyword(null, "handlers", "handlers", 79528781)).cljs$core$IFn$_invoke$arity$1(opts));
+    return com.cognitect.transit.writer.call(null, cljs.core.name.call(null, type), cognitect.transit.opts_merge.call(null, {"unpack":function(keyword_handler, symbol_handler, list_handler, map_handler, set_handler, vector_handler, uuid_handler, handlers) {
+      return function(x) {
+        if (x instanceof cljs.core.PersistentArrayMap) {
+          return x.arr;
+        } else {
+          return false;
+        }
+      };
+    }(keyword_handler, symbol_handler, list_handler, map_handler, set_handler, vector_handler, uuid_handler, handlers), "handlers":function() {
+      var x5248 = cljs.core.clone.call(null, handlers);
+      x5248.forEach = function(x5248, keyword_handler, symbol_handler, list_handler, map_handler, set_handler, vector_handler, uuid_handler, handlers) {
+        return function(f) {
+          var coll = this;
+          var seq__5249 = cljs.core.seq.call(null, coll);
+          var chunk__5250 = null;
+          var count__5251 = 0;
+          var i__5252 = 0;
+          while (true) {
+            if (i__5252 < count__5251) {
+              var vec__5253 = cljs.core._nth.call(null, chunk__5250, i__5252);
+              var k = cljs.core.nth.call(null, vec__5253, 0, null);
+              var v = cljs.core.nth.call(null, vec__5253, 1, null);
+              f.call(null, v, k);
+              var G__5255 = seq__5249;
+              var G__5256 = chunk__5250;
+              var G__5257 = count__5251;
+              var G__5258 = i__5252 + 1;
+              seq__5249 = G__5255;
+              chunk__5250 = G__5256;
+              count__5251 = G__5257;
+              i__5252 = G__5258;
+              continue;
+            } else {
+              var temp__4126__auto__ = cljs.core.seq.call(null, seq__5249);
+              if (temp__4126__auto__) {
+                var seq__5249__$1 = temp__4126__auto__;
+                if (cljs.core.chunked_seq_QMARK_.call(null, seq__5249__$1)) {
+                  var c__4410__auto__ = cljs.core.chunk_first.call(null, seq__5249__$1);
+                  var G__5259 = cljs.core.chunk_rest.call(null, seq__5249__$1);
+                  var G__5260 = c__4410__auto__;
+                  var G__5261 = cljs.core.count.call(null, c__4410__auto__);
+                  var G__5262 = 0;
+                  seq__5249 = G__5259;
+                  chunk__5250 = G__5260;
+                  count__5251 = G__5261;
+                  i__5252 = G__5262;
+                  continue;
+                } else {
+                  var vec__5254 = cljs.core.first.call(null, seq__5249__$1);
+                  var k = cljs.core.nth.call(null, vec__5254, 0, null);
+                  var v = cljs.core.nth.call(null, vec__5254, 1, null);
+                  f.call(null, v, k);
+                  var G__5263 = cljs.core.next.call(null, seq__5249__$1);
+                  var G__5264 = null;
+                  var G__5265 = 0;
+                  var G__5266 = 0;
+                  seq__5249 = G__5263;
+                  chunk__5250 = G__5264;
+                  count__5251 = G__5265;
+                  i__5252 = G__5266;
+                  continue;
+                }
+              } else {
+                return null;
+              }
+            }
+            break;
+          }
+        };
+      }(x5248, keyword_handler, symbol_handler, list_handler, map_handler, set_handler, vector_handler, uuid_handler, handlers);
+      return x5248;
+    }(), "objectBuilder":function(keyword_handler, symbol_handler, list_handler, map_handler, set_handler, vector_handler, uuid_handler, handlers) {
+      return function(m, kfn, vfn) {
+        return cljs.core.reduce_kv.call(null, function(keyword_handler, symbol_handler, list_handler, map_handler, set_handler, vector_handler, uuid_handler, handlers) {
+          return function(obj, k, v) {
+            var G__5247 = obj;
+            G__5247.push(kfn.call(null, k), vfn.call(null, v));
+            return G__5247;
+          };
+        }(keyword_handler, symbol_handler, list_handler, map_handler, set_handler, vector_handler, uuid_handler, handlers), ["^ "], m);
+      };
+    }(keyword_handler, symbol_handler, list_handler, map_handler, set_handler, vector_handler, uuid_handler, handlers)}, cljs.core.clj__GT_js.call(null, cljs.core.dissoc.call(null, opts, new cljs.core.Keyword(null, "handlers", "handlers", 79528781)))));
+  };
+  writer = function(type, opts) {
+    switch(arguments.length) {
+      case 1:
+        return writer__1.call(this, type);
+      case 2:
+        return writer__2.call(this, type, opts);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  writer.cljs$core$IFn$_invoke$arity$1 = writer__1;
+  writer.cljs$core$IFn$_invoke$arity$2 = writer__2;
+  return writer;
+}();
+cognitect.transit.write = function write(w, o) {
+  return w.write(o);
+};
+cognitect.transit.read_handler = function read_handler(from_rep) {
+  return from_rep;
+};
+cognitect.transit.write_handler = function() {
+  var write_handler = null;
+  var write_handler__2 = function(tag_fn, rep_fn) {
+    return write_handler.call(null, tag_fn, rep_fn, null, null);
+  };
+  var write_handler__3 = function(tag_fn, rep_fn, str_rep_fn) {
+    return write_handler.call(null, tag_fn, rep_fn, str_rep_fn, null);
+  };
+  var write_handler__4 = function(tag_fn, rep_fn, str_rep_fn, verbose_handler_fn) {
+    if (typeof cognitect.transit.t5270 !== "undefined") {
+    } else {
+      cognitect.transit.t5270 = function(verbose_handler_fn, str_rep_fn, rep_fn, tag_fn, write_handler, meta5271) {
+        this.verbose_handler_fn = verbose_handler_fn;
+        this.str_rep_fn = str_rep_fn;
+        this.rep_fn = rep_fn;
+        this.tag_fn = tag_fn;
+        this.write_handler = write_handler;
+        this.meta5271 = meta5271;
+        this.cljs$lang$protocol_mask$partition1$ = 0;
+        this.cljs$lang$protocol_mask$partition0$ = 393216;
+      };
+      cognitect.transit.t5270.cljs$lang$type = true;
+      cognitect.transit.t5270.cljs$lang$ctorStr = "cognitect.transit/t5270";
+      cognitect.transit.t5270.cljs$lang$ctorPrWriter = function(this__4217__auto__, writer__4218__auto__, opt__4219__auto__) {
+        return cljs.core._write.call(null, writer__4218__auto__, "cognitect.transit/t5270");
+      };
+      cognitect.transit.t5270.prototype.tag = function(o) {
+        var self__ = this;
+        var _ = this;
+        return self__.tag_fn.call(null, o);
+      };
+      cognitect.transit.t5270.prototype.rep = function(o) {
+        var self__ = this;
+        var _ = this;
+        return self__.rep_fn.call(null, o);
+      };
+      cognitect.transit.t5270.prototype.stringRep = function(o) {
+        var self__ = this;
+        var _ = this;
+        if (cljs.core.truth_(self__.str_rep_fn)) {
+          return self__.str_rep_fn.call(null, o);
+        } else {
+          return null;
+        }
+      };
+      cognitect.transit.t5270.prototype.getVerboseHandler = function() {
+        var self__ = this;
+        var _ = this;
+        if (cljs.core.truth_(self__.verbose_handler_fn)) {
+          return self__.verbose_handler_fn.call(null);
+        } else {
+          return null;
+        }
+      };
+      cognitect.transit.t5270.prototype.cljs$core$IMeta$_meta$arity$1 = function(_5272) {
+        var self__ = this;
+        var _5272__$1 = this;
+        return self__.meta5271;
+      };
+      cognitect.transit.t5270.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = function(_5272, meta5271__$1) {
+        var self__ = this;
+        var _5272__$1 = this;
+        return new cognitect.transit.t5270(self__.verbose_handler_fn, self__.str_rep_fn, self__.rep_fn, self__.tag_fn, self__.write_handler, meta5271__$1);
+      };
+      cognitect.transit.__GT_t5270 = function __GT_t5270(verbose_handler_fn__$1, str_rep_fn__$1, rep_fn__$1, tag_fn__$1, write_handler__$1, meta5271) {
+        return new cognitect.transit.t5270(verbose_handler_fn__$1, str_rep_fn__$1, rep_fn__$1, tag_fn__$1, write_handler__$1, meta5271);
+      };
+    }
+    return new cognitect.transit.t5270(verbose_handler_fn, str_rep_fn, rep_fn, tag_fn, write_handler, null);
+  };
+  write_handler = function(tag_fn, rep_fn, str_rep_fn, verbose_handler_fn) {
+    switch(arguments.length) {
+      case 2:
+        return write_handler__2.call(this, tag_fn, rep_fn);
+      case 3:
+        return write_handler__3.call(this, tag_fn, rep_fn, str_rep_fn);
+      case 4:
+        return write_handler__4.call(this, tag_fn, rep_fn, str_rep_fn, verbose_handler_fn);
+    }
+    throw new Error("Invalid arity: " + arguments.length);
+  };
+  write_handler.cljs$core$IFn$_invoke$arity$2 = write_handler__2;
+  write_handler.cljs$core$IFn$_invoke$arity$3 = write_handler__3;
+  write_handler.cljs$core$IFn$_invoke$arity$4 = write_handler__4;
+  return write_handler;
+}();
+cognitect.transit.tagged_value = function tagged_value(tag, rep) {
+  return com.cognitect.transit.types.taggedValue.call(null, tag, rep);
+};
+cognitect.transit.tagged_value_QMARK_ = function tagged_value_QMARK_(x) {
+  return com.cognitect.transit.types.isTaggedValue.call(null, x);
+};
+cognitect.transit.integer = function integer(s) {
+  return com.cognitect.transit.types.integer.call(null, s);
+};
+cognitect.transit.integer_QMARK_ = function integer_QMARK_(x) {
+  return com.cognitect.transit.types.isInteger.call(null, x);
+};
+cognitect.transit.bigint = function bigint(s) {
+  return com.cognitect.transit.types.bigInteger.call(null, s);
+};
+cognitect.transit.bigint_QMARK_ = function bigint_QMARK_(x) {
+  return com.cognitect.transit.types.isBigInteger.call(null, x);
+};
+cognitect.transit.bigdec = function bigdec(s) {
+  return com.cognitect.transit.types.bigDecimalValue.call(null, s);
+};
+cognitect.transit.bigdec_QMARK_ = function bigdec_QMARK_(x) {
+  return com.cognitect.transit.types.isBigDecimal.call(null, x);
+};
+cognitect.transit.uri = function uri(s) {
+  return com.cognitect.transit.types.uri.call(null, s);
+};
+cognitect.transit.uri_QMARK_ = function uri_QMARK_(x) {
+  return com.cognitect.transit.types.isURI.call(null, x);
+};
+cognitect.transit.uuid = function uuid(s) {
+  return com.cognitect.transit.types.uuid.call(null, s);
+};
+cognitect.transit.uuid_QMARK_ = function uuid_QMARK_(x) {
+  return com.cognitect.transit.types.isUUID.call(null, x);
+};
+cognitect.transit.binary = function binary(s) {
+  return com.cognitect.transit.types.binary.call(null, s);
+};
+cognitect.transit.binary_QMARK_ = function binary_QMARK_(x) {
+  return com.cognitect.transit.types.isBinary.call(null, x);
+};
+cognitect.transit.quoted = function quoted(x) {
+  return com.cognitect.transit.types.quoted.call(null, x);
+};
+cognitect.transit.quoted_QMARK_ = function quoted_QMARK_(x) {
+  return com.cognitect.transit.types.isQuoted.call(null, x);
+};
+cognitect.transit.link = function link(x) {
+  return com.cognitect.transit.types.link.call(null, x);
+};
+cognitect.transit.link_QMARK_ = function link_QMARK_(x) {
+  return com.cognitect.transit.types.isLink.call(null, x);
+};
 goog.provide("clojure.string");
 goog.require("cljs.core");
 goog.require("goog.string.StringBuffer");
@@ -27094,10 +30588,37 @@ clojure.string.escape = function escape__$1(s, cmap) {
 };
 goog.provide("rureader.core");
 goog.require("cljs.core");
+goog.require("cognitect.transit");
+goog.require("cognitect.transit");
 goog.require("clojure.string");
 goog.require("clojure.string");
+rureader.core.json_reader = cognitect.transit.reader.call(null, "json");
+rureader.core.saved = cljs.core.atom.call(null, cljs.core.PersistentArrayMap.EMPTY);
+rureader.core.cword = cljs.core.atom.call(null, "");
+rureader.core.ctrans = cljs.core.atom.call(null, "");
 rureader.core.get_by_id = function get_by_id(x) {
   return document.getElementById(x);
+};
+rureader.core.load_api_key = function load_api_key(akey) {
+  rureader.core.api_key = akey;
+};
+rureader.core.yan_get = function yan_get(word) {
+  var req = new XMLHttpRequest;
+  req.open("GET", "https://dictionary.yandex.net/api/v1/dicservice.json/lookup?key\x3d" + cljs.core.str.cljs$core$IFn$_invoke$arity$1(rureader.core.api_key) + "\x26lang\x3dru-en\x26text\x3d" + cljs.core.str.cljs$core$IFn$_invoke$arity$1(word) + "\x26flags\x3d4", false);
+  req.send();
+  return cognitect.transit.read.call(null, rureader.core.json_reader, req.responseText);
+};
+rureader.core.get_base_word = function get_base_word(yan_map) {
+  return cljs.core.get_in.call(null, yan_map, new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, ["def", 0, "text"], null));
+};
+rureader.core.get_translations = function get_translations(yan_map) {
+  return function(p1__5156_SHARP_) {
+    return "" + cljs.core.str.cljs$core$IFn$_invoke$arity$1(clojure.string.join.call(null, ", ", cljs.core.map.call(null, new cljs.core.Keyword(null, "word", "word", -420123725), p1__5156_SHARP_))) + "; " + cljs.core.str.cljs$core$IFn$_invoke$arity$1(clojure.string.join.call(null, ", ", cljs.core.mapcat.call(null, new cljs.core.Keyword(null, "trans", "trans", -1318503851), p1__5156_SHARP_)));
+  }.call(null, cljs.core.mapv.call(null, function(m) {
+    return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "word", "word", -420123725), m.call(null, "text"), new cljs.core.Keyword(null, "trans", "trans", -1318503851), cljs.core.mapv.call(null, function(p1__5155_SHARP_) {
+      return p1__5155_SHARP_.call(null, "text");
+    }, m.call(null, "tr"))], null);
+  }, yan_map.call(null, "def")));
 };
 rureader.core.multitran = function multitran(word) {
   return "http://www.multitran.ru/c/m.exe?CL\x3d1\x26s\x3d" + cljs.core.str.cljs$core$IFn$_invoke$arity$1(word) + "\x26l1\x3d1";
@@ -27111,16 +30632,39 @@ rureader.core.forvo = function forvo(word) {
 rureader.core.yandex = function yandex(word) {
   return "http://slovari.yandex.ru/" + cljs.core.str.cljs$core$IFn$_invoke$arity$1(word) + "/\u043f\u0435\u0440\u0435\u0432\u043e\u0434/";
 };
+rureader.core.wiktionary = function wiktionary(word) {
+  return "http://en.wiktionary.org/wiki/" + cljs.core.str.cljs$core$IFn$_invoke$arity$1(word) + "#Russian";
+};
 rureader.core.gramota = function gramota(word) {
   return "http://gramota.ru/slovari/dic/?word\x3d" + cljs.core.str.cljs$core$IFn$_invoke$arity$1(word) + "\x26all\x3dx";
 };
 rureader.core.wrap_word = function wrap_word(word) {
   return'\x3cspan id\x3d"word" \n        onClick\x3d"rureader.core.lookup_word(this.innerHTML)"\x3e' + cljs.core.str.cljs$core$IFn$_invoke$arity$1(word) + "\x3c/span\x3e";
 };
+rureader.core.update_saved_words = function update_saved_words() {
+  return rureader.core.get_by_id.call(null, "saved-words").innerHTML = clojure.string.join.call(null, "\x3cbr\x3e", cljs.core.vals.call(null, cljs.core.deref.call(null, rureader.core.saved)));
+};
+rureader.core.save_word = function save_word() {
+  cljs.core.swap_BANG_.call(null, rureader.core.saved, cljs.core.assoc, cljs.core.deref.call(null, rureader.core.cword), cljs.core.deref.call(null, rureader.core.ctrans));
+  rureader.core.get_by_id.call(null, "last-saved").innerHTML = "Last saved: " + cljs.core.str.cljs$core$IFn$_invoke$arity$1(cljs.core.deref.call(null, rureader.core.cword));
+  return rureader.core.update_saved_words.call(null);
+};
+rureader.core.display_saved = function display_saved(bool) {
+  return rureader.core.get_by_id.call(null, "saved-region").style.display = cljs.core.truth_(bool) ? "block" : "none";
+};
 rureader.core.lookup_word = function lookup_word(word) {
   rureader.core.get_by_id.call(null, "dic1").src = rureader.core.yandex.call(null, word);
-  rureader.core.get_by_id.call(null, "dic2").src = rureader.core.multitran.call(null, word);
-  return rureader.core.get_by_id.call(null, "dic3").src = rureader.core.forvo.call(null, word);
+  var yan_map = rureader.core.yan_get.call(null, word);
+  var base_word = rureader.core.get_base_word.call(null, yan_map);
+  var trans = rureader.core.get_translations.call(null, yan_map);
+  cljs.core.reset_BANG_.call(null, rureader.core.cword, base_word);
+  cljs.core.reset_BANG_.call(null, rureader.core.ctrans, trans);
+  rureader.core.get_by_id.call(null, "dic2").src = rureader.core.wiktionary.call(null, base_word);
+  rureader.core.get_by_id.call(null, "forvolink").href = rureader.core.forvo.call(null, word);
+  rureader.core.get_by_id.call(null, "forvobaselink").href = rureader.core.forvo.call(null, base_word);
+  rureader.core.get_by_id.call(null, "multitranlink").href = rureader.core.multitran.call(null, word);
+  rureader.core.get_by_id.call(null, "multitranbaselink").href = rureader.core.multitran.call(null, base_word);
+  return rureader.core.get_by_id.call(null, "lingvolink").href = rureader.core.lingvo.call(null, base_word);
 };
 rureader.core.prepare = function prepare(text) {
   return clojure.string.replace.call(null, clojure.string.replace.call(null, text, /[\u0430-\u044f\u0410-\u042f\u0401\u0451][\u0430-\u044f\u0410-\u042f\u0401\u0451-]*/, rureader.core.wrap_word), /\n\n+/, "\x3cbr\x3e\x3cbr\x3e");
@@ -27128,4 +30672,7 @@ rureader.core.prepare = function prepare(text) {
 rureader.core.display_text = function display_text() {
   var text = rureader.core.prepare.call(null, rureader.core.get_by_id.call(null, "inputbox").value);
   return rureader.core.get_by_id.call(null, "textregion").innerHTML = text;
+};
+rureader.core.scroll = function scroll(n, frame) {
+  return frame.contentWindow().scrollTo(20, 20);
 };

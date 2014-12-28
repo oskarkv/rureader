@@ -6,28 +6,50 @@
 <script type="text/javascript" src="target/cljsbuild-main.js" ></script>
 <link rel="stylesheet" type="text/css" href="style.css">
 <link href='http://fonts.googleapis.com/css?family=Droid+Serif' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=PT+Serif' rel='stylesheet' type='text/css'>
+<script>
+document.onload = rureader.core.load_api_key("YOUR YANDEX API KEY HERE");
+</script>
 </head>
 <body>
 <div id="leftside">
     <section id="inputsection">
-        <span class="inputclass" id="enter">
+        <div class="inputclass" id="enter">
             Enter text:
-        </span>
-        <textarea id="inputbox" class="inputclass"></textarea>
-        <button id="button" class="inputclass" onClick="rureader.core.display_text()">давай!</button>
-        <a href="http://www.russianlessons.net/grammar/pronouns.php">Pronouns</a>
+            <br>
+            <textarea id="inputbox"></textarea>
+            <br>
+            <button id="button" onClick="rureader.core.display_text()">Давай!</button>
+        </div>
+        <div id="links" class="inputclass">
+            <ul>
+                <li><a href="http://www.russianlessons.net/grammar/pronouns.php">Pronouns</a></li>
+                <li><a id="forvolink" href="">Forvo (declined)</a></li>
+                <li><a id="forvobaselink" href="">Forvo</a></li>
+                <li><a id="multitranlink" href="">Multitran (declined)</a></li>
+                <li><a id="multitranbaselink" href="">Multitran</a></li>
+                <li><a id="lingvolink" href="">Lingvo</a></li>
+            </ul>
+        </div>
+        <div id="buttons" class="inputclass">
+            <button class="button" id="show-saved" onClick="rureader.core.display_saved(true)">Show saved words</button>
+            <br>
+            <button class="button" id="save" onClick="rureader.core.save_word()">Save word</button>
+            <br>
+            <span id="last-saved"></span>
+        </div>
     </section>
     <section id="textregion">
     </section>
-    <iframe id="dic3" src=""></iframe>
-</div>
-<section id="dics">
-    <div id="dic1div">
-        <iframe id="dic1" src=""></iframe>
+    <div id="saved-region" style="display: none;">
+        <section id="saved-words">
+        </section>
+        <button id="hide-saved" onClick="rureader.core.display_saved(false)">Hide saved words</button>
     </div>
-    <div id="dic2div">
-        <iframe sandbox="allow-same-origin allow-forms" id="dic2" src=""></iframe>
-    </div> 
+    <iframe id="dic1" src=""></iframe>
+</div>
+<section id="rightside">
+    <iframe id="dic2" src=""></iframe>
 </section>
 </body>
 </html>

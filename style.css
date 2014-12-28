@@ -1,57 +1,60 @@
 body {
     font-family: 'Droid Serif', serif;
+    font-size: 16px;
+    margin: 0px;
 }
 
 #leftside {
-    width: 30%;
+    width: 40%;
     height: 100%;
 }
 
-.inputclass {
-    vertical-align: middle;
-}
-
-#enter {
-    font-size: 20px;
-}
-
-#inputbox {
-    width: 200px;
-    height: 100px;
-}
-
-#textregion {
-    padding: 20px 0px;
-    font-size: 18px;
-}
-
-#dics {
-    width: 70%;
+#rightside {
+    width: 60%;
     height: 100%;
     position: fixed;
     right: 0;
     top: 0;
 }
 
-#dic1div, #dic2div {
-    height: 100%;
-    float: left;
+#inputsection {
+    margin: 0 10px;
 }
 
-#dic1div {
-    width: 40%;
+#links {
+    display: inline-block;
 }
 
-#dic2div {
-    width: 60%;
+.inputclass {
+    font-size: 14px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
-#dic1, #dic2 {
+.button, #last-saved {
+    margin: 3px 15px;
+}
+
+#inputbox {
+    width: 150px;
+    height: 40px;
+}
+
+#hide-saved {
+    margin: 5px;
+}
+
+#textregion, #saved-words {
+    font-family: 'PT Serif', serif;
+    margin: 5px 10px;
+}
+
+#dic1 {
+    width: 100%;
+    height: 500px;
+}
+
+#dic2 {
     width: 100%;
     height: 100%;
-}
-
-#dic3 {
-    width: 100%;
-    height: 50%;
 }
