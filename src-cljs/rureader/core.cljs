@@ -97,14 +97,3 @@
 
 (defn scroll [n frame]
   (-> frame .contentWindow (.scrollTo 20 20)))
-
-;sandbox="allow-same-origin allow-forms"
-
-; {"head":{},
-;  "def": [{"text":"еще","pos":"частица","tr":
-;           [{"text":"still","pos":"particle","mean":[{"text":"все еще"}],"ex":[{"text":"еще разок","tr":[{"text":"still razok"}]}]}
-;            {"text":"another","pos":"particle","ex":[{"text":"еще неделька","tr":[{"text":"another week"}]}]}
-;            {"text":"even","pos":"particle","syn":[{"text":"else","pos":"particle"}],"ex":[{"text":"даже еще хуже","tr":[{"text":"even worse"}]},{"text":"как еще","tr":[{"text":"how else"}]}]}
-;            {"text":"yet","pos":"particle","mean":[{"text":"все же"}],"ex":[{"text":"еще раз","tr":[{"text":"yet again"}]}]}
-;            {"text":"also","pos":"particle","ex":[{"text":"еще хотеть","tr":[{"text":"also want"}]}]}
-;            {"text":"as far back","pos":"particle"}]}]}
