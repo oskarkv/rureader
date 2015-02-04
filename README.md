@@ -5,9 +5,9 @@ rureader
 
 How to Use
 ----------
-1. Paste a Russian text.
-2. As you read it, click on words that you don't understand to have them looked
-   up right next to the text.
+1. Paste a Russian or English (or both) text.
+2. As you read it, click on words to have them looked up, in the other
+   language, right next to the text.
 3. You may save words in a list (translated automatically) as you read.
 4. There are links to [forvo](http://www.forvo.com/) and additional dictionaries
    on the top of the page, that will look up the current word on those sites.
@@ -21,5 +21,6 @@ How to Install and Run
    service)](http://api.yandex.com/translate/)
 4. Open `page.html` in a text editor and replace the text `load_api_key("YOUR
    YANDEX API KEY HERE");` with your own API Key, so it says something like
-   `load_api_key("dict.1.1...");` instead, and save the file.
-5. Click `page.html` to start.
+   `load_api_key("dict.1.1...");` instead, and save the file. (Remember to do
+   this step again if you get a new version.)
+5. Click `page.html` to start (you may want to bookmark it).
