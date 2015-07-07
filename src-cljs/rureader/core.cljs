@@ -56,7 +56,7 @@
 
 (defn wiktionary-ru [word]
   (str "http://ru.wiktionary.org/wiki/" word
-       "#.D0.90.D0.BD.D0.B3.D0.BB.D0.B8.D0.B9.D1.81.D0.BA.D0.B8.D0.B9"))
+       "#.D0.A0.D1.83.D1.81.D1.81.D0.BA.D0.B8.D0.B9"))
 
 ;;; Does not work because gramota uses cp1251
 (defn gramota [word]
@@ -93,8 +93,8 @@
     (set! (.-href (get-by-id "forvobaselink")) (forvo base-word))
     (set! (.-href (get-by-id "multitranlink")) (multitran word))
     (set! (.-href (get-by-id "multitranbaselink")) (multitran base-word))
-    (set! (.-href (get-by-id "lingvolink")) ((if ru? lingvo wiktionary-ru) base-word))
-    (set! (.-innerHTML (get-by-id "lingvolink")) (if ru? "Lingvo" "Ru.Wiktionary"))))
+    (set! (.-href (get-by-id "lingvolink")) (lingvo base-word))
+    (set! (.-href (get-by-id "ruwiktionarylink")) (wiktionary-ru base-word))))
 
 (defn prepare [text]
   (-> text
