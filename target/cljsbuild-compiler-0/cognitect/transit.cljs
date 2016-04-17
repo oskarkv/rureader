@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns cognitect.transit
-  (:refer-clojure :exclude [integer?])
+  (:refer-clojure :exclude [integer? uuid])
   (:require [com.cognitect.transit :as t]
             [com.cognitect.transit.types :as ty]
             [com.cognitect.transit.eq :as eq])
@@ -32,6 +32,20 @@
       (identical? (.-uuid this) (.toString other))
 
       :else false)))
+
+(extend-protocol IComparable
+  UUID
+  (-compare [this other]
+    (if (or (instance? UUID other)
+            (instance? ty/UUID other))
+      (compare (.toString this) (.toString other))
+      (throw (js/Error. (str "Cannot compare " this " to " other)))))
+  ty/UUID
+  (-compare [this other]
+    (if (or (instance? UUID other)
+            (instance? ty/UUID other))
+      (compare (.toString this) (.toString other))
+      (throw (js/Error. (str "Cannot compare " this " to " other))))))
 
 (extend-protocol IEquiv
   Long
@@ -55,11 +69,16 @@
 
   ty/UUID
   (-hash [this]
-    (eq/hashCode this))
+    (hash (.toString this)))
 
   ty/TaggedValue
   (-hash [this]
     (eq/hashCode this)))
+
+(extend-type ty/UUID
+  IPrintWithWriter
+  (-pr-writer [uuid writer _]
+    (-write writer (str "#uuid \"" (.toString uuid) "\""))))
 
 (defn ^:no-doc opts-merge [a b]
   (doseq [k (js-keys b)]
@@ -168,9 +187,8 @@
 
 (defn writer
   "Return a transit writer. type maybe either :json or :json-verbose.
-   opts is a map containing a :handlers entry. :handlers is a JavaScript
-   array of interleaved type constructors and handler instances for those 
-   type constructors."
+  opts is a map containing a :handlers entry. :handlers is a map of
+  type constructors to handler instances."
   ([type] (writer type nil))
   ([type opts]
      (let [keyword-handler (KeywordHandler.)
@@ -252,7 +270,8 @@
   ([tag-fn rep-fn str-rep-fn]
      (write-handler tag-fn rep-fn str-rep-fn nil))
   ([tag-fn rep-fn str-rep-fn verbose-handler-fn]
-     (reify Object
+     (reify
+       Object
        (tag [_ o] (tag-fn o))
        (rep [_ o] (rep-fn o))
        (stringRep [_ o] (when str-rep-fn (str-rep-fn o)))
@@ -277,7 +296,7 @@
   in the 53bit integer range, a goog.math.Long instance if above. s
   may be a string or a JavaScript number."
   [s]
-  (ty/integer s))
+  (ty/intValue s))
 
 (defn integer?
   "Returns true if x is an integer value between the 53bit and 64bit
@@ -286,12 +305,12 @@
   (ty/isInteger x))
 
 (defn bigint
-  "Construct a big decimal from a string."
+  "Construct a big integer from a string."
   [s]
   (ty/bigInteger s))
 
 (defn bigint?
-  "Returns true if x is a transit big decimal value, false otherwise."
+  "Returns true if x is a transit big integer value, false otherwise."
   [x]
   (ty/isBigInteger x))
 
@@ -323,7 +342,7 @@
 (defn uuid?
   "Returns true if x is a transit UUID value, false otherwise."
   [x]
-  (ty/isUUID x))
+  (or (ty/isUUID x) (instance? UUID x)))
 
 (defn binary
   "Construct a transit binary value. s should be base64 encoded
