@@ -49,7 +49,7 @@
   (str "http://www.forvo.com/word/" word "/#ru"))
 
 (defn yandex [word]
-  (str "http://slovari.yandex.ru/" word "/перевод/"))
+  (str "https://translate.yandex.com/m/translate?text=" word "&lang=ru-en"))
 
 (defn wiktionary [word]
   (str "http://en.wiktionary.org/wiki/" word "#Russian"))
