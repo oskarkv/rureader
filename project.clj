@@ -1,8 +1,8 @@
 (defproject rureader "0.1.0"
-  :plugins [[lein-cljsbuild "1.0.3"]]
-  :dependencies [[org.clojure/clojurescript "0.0-2371"]
-                 [org.clojure/clojure "1.6.0"]
-                 [com.cognitect/transit-cljs "0.8.188"]]
+  :plugins [[lein-cljsbuild "1.1.3"]]
+  :dependencies [[org.clojure/clojurescript "1.8.40"]
+                 [org.clojure/clojure "1.8.0"]
+                 [com.cognitect/transit-cljs "0.8.237"]]
   :cljsbuild {
     :builds [{
         ; The path to the top-level ClojureScript source directory:
