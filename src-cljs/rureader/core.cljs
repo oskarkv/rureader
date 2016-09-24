@@ -58,6 +58,10 @@
   (str "http://ru.wiktionary.org/wiki/" word
        "#.D0.A0.D1.83.D1.81.D1.81.D0.BA.D0.B8.D0.B9"))
 
+(defn image-search-url [text]
+  (str "https://www.google.se/search?q="
+       (cstr/replace text #" +" "+") "&tbm=isch"))
+
 ;;; Does not work because gramota uses cp1251
 (defn gramota [word]
   (str "http://gramota.ru/slovari/dic/?word=" word "&all=x"))
@@ -94,7 +98,8 @@
     (set! (.-href (get-by-id "multitranlink")) (multitran word))
     (set! (.-href (get-by-id "multitranbaselink")) (multitran base-word))
     (set! (.-href (get-by-id "lingvolink")) (lingvo base-word))
-    (set! (.-href (get-by-id "ruwiktionarylink")) (wiktionary-ru base-word))))
+    (set! (.-href (get-by-id "ruwiktionarylink")) (wiktionary-ru base-word))
+    (set! (.-href (get-by-id "imageslink")) (image-search-url base-word))))
 
 (defn prepare [text]
   (-> text

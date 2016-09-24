@@ -35555,21 +35555,21 @@ rureader.core.get_base_word = function rureader$core$get_base_word(yan_map) {
   return cljs.core.get_in.call(null, yan_map, new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, ["def", 0, "text"], null));
 };
 rureader.core.get_translations = function rureader$core$get_translations(var_args) {
-  var args11588 = [];
-  var len__7279__auto___11591 = arguments.length;
-  var i__7280__auto___11592 = 0;
+  var args8486 = [];
+  var len__7279__auto___8489 = arguments.length;
+  var i__7280__auto___8490 = 0;
   while (true) {
-    if (i__7280__auto___11592 < len__7279__auto___11591) {
-      args11588.push(arguments[i__7280__auto___11592]);
-      var G__11593 = i__7280__auto___11592 + 1;
-      i__7280__auto___11592 = G__11593;
+    if (i__7280__auto___8490 < len__7279__auto___8489) {
+      args8486.push(arguments[i__7280__auto___8490]);
+      var G__8491 = i__7280__auto___8490 + 1;
+      i__7280__auto___8490 = G__8491;
       continue;
     } else {
     }
     break;
   }
-  var G__11590 = args11588.length;
-  switch(G__11590) {
+  var G__8488 = args8486.length;
+  switch(G__8488) {
     case 1:
       return rureader.core.get_translations.cljs$core$IFn$_invoke$arity$1(arguments[0]);
       break;
@@ -35577,20 +35577,20 @@ rureader.core.get_translations = function rureader$core$get_translations(var_arg
       return rureader.core.get_translations.cljs$core$IFn$_invoke$arity$2(arguments[0], arguments[1]);
       break;
     default:
-      throw new Error([cljs.core.str("Invalid arity: "), cljs.core.str(args11588.length)].join(""));;
+      throw new Error([cljs.core.str("Invalid arity: "), cljs.core.str(args8486.length)].join(""));;
   }
 };
 rureader.core.get_translations.cljs$core$IFn$_invoke$arity$1 = function(yan_map) {
   return rureader.core.get_translations.call(null, yan_map, false);
 };
 rureader.core.get_translations.cljs$core$IFn$_invoke$arity$2 = function(yan_map, ru_QMARK_) {
-  return function(p1__11587_SHARP_) {
-    return clojure.string.join.call(null, "; ", (cljs.core.truth_(ru_QMARK_) ? cljs.core.identity : cljs.core.reverse).call(null, p1__11587_SHARP_));
-  }.call(null, clojure.string.split.call(null, function(p1__11586_SHARP_) {
-    return [cljs.core.str(clojure.string.join.call(null, ", ", cljs.core.map.call(null, new cljs.core.Keyword(null, "word", "word", -420123725), p1__11586_SHARP_))), cljs.core.str("; "), cljs.core.str(clojure.string.join.call(null, ", ", cljs.core.mapcat.call(null, new cljs.core.Keyword(null, "trans", "trans", -1318503851), p1__11586_SHARP_)))].join("");
+  return function(p1__8485_SHARP_) {
+    return clojure.string.join.call(null, "; ", (cljs.core.truth_(ru_QMARK_) ? cljs.core.identity : cljs.core.reverse).call(null, p1__8485_SHARP_));
+  }.call(null, clojure.string.split.call(null, function(p1__8484_SHARP_) {
+    return [cljs.core.str(clojure.string.join.call(null, ", ", cljs.core.map.call(null, new cljs.core.Keyword(null, "word", "word", -420123725), p1__8484_SHARP_))), cljs.core.str("; "), cljs.core.str(clojure.string.join.call(null, ", ", cljs.core.mapcat.call(null, new cljs.core.Keyword(null, "trans", "trans", -1318503851), p1__8484_SHARP_)))].join("");
   }.call(null, cljs.core.mapv.call(null, function(m) {
-    return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "word", "word", -420123725), m.call(null, "text"), new cljs.core.Keyword(null, "trans", "trans", -1318503851), cljs.core.mapv.call(null, function(p1__11585_SHARP_) {
-      return p1__11585_SHARP_.call(null, "text");
+    return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "word", "word", -420123725), m.call(null, "text"), new cljs.core.Keyword(null, "trans", "trans", -1318503851), cljs.core.mapv.call(null, function(p1__8483_SHARP_) {
+      return p1__8483_SHARP_.call(null, "text");
     }, m.call(null, "tr"))], null);
   }, yan_map.call(null, "def"))), /; /));
 };
@@ -35612,6 +35612,9 @@ rureader.core.wiktionary = function rureader$core$wiktionary(word) {
 };
 rureader.core.wiktionary_ru = function rureader$core$wiktionary_ru(word) {
   return [cljs.core.str("http://ru.wiktionary.org/wiki/"), cljs.core.str(word), cljs.core.str("#.D0.A0.D1.83.D1.81.D1.81.D0.BA.D0.B8.D0.B9")].join("");
+};
+rureader.core.image_search_url = function rureader$core$image_search_url(text) {
+  return [cljs.core.str("https://www.google.se/search?q\x3d"), cljs.core.str(clojure.string.replace.call(null, text, / +/, "+")), cljs.core.str("\x26tbm\x3disch")].join("");
 };
 rureader.core.gramota = function rureader$core$gramota(word) {
   return [cljs.core.str("http://gramota.ru/slovari/dic/?word\x3d"), cljs.core.str(word), cljs.core.str("\x26all\x3dx")].join("");
@@ -35644,13 +35647,14 @@ rureader.core.lookup_word = function rureader$core$lookup_word(word, ru_QMARK_) 
   rureader.core.get_by_id.call(null, "multitranlink").href = rureader.core.multitran.call(null, word);
   rureader.core.get_by_id.call(null, "multitranbaselink").href = rureader.core.multitran.call(null, base_word__$1);
   rureader.core.get_by_id.call(null, "lingvolink").href = rureader.core.lingvo.call(null, base_word__$1);
-  return rureader.core.get_by_id.call(null, "ruwiktionarylink").href = rureader.core.wiktionary_ru.call(null, base_word__$1);
+  rureader.core.get_by_id.call(null, "ruwiktionarylink").href = rureader.core.wiktionary_ru.call(null, base_word__$1);
+  return rureader.core.get_by_id.call(null, "imageslink").href = rureader.core.image_search_url.call(null, base_word__$1);
 };
 rureader.core.prepare = function rureader$core$prepare(text) {
-  return clojure.string.replace.call(null, clojure.string.replace.call(null, clojure.string.replace.call(null, text, /[a-zA-Z]+/, function(p1__11595_SHARP_) {
-    return rureader.core.wrap_word.call(null, p1__11595_SHARP_, false);
-  }), /[а-яА-ЯЁё][а-яА-ЯЁё-]*/, function(p1__11596_SHARP_) {
-    return rureader.core.wrap_word.call(null, p1__11596_SHARP_, true);
+  return clojure.string.replace.call(null, clojure.string.replace.call(null, clojure.string.replace.call(null, text, /[a-zA-Z]+/, function(p1__8493_SHARP_) {
+    return rureader.core.wrap_word.call(null, p1__8493_SHARP_, false);
+  }), /[а-яА-ЯЁё][а-яА-ЯЁё-]*/, function(p1__8494_SHARP_) {
+    return rureader.core.wrap_word.call(null, p1__8494_SHARP_, true);
   }), /\n\n+/, "\x3cbr\x3e\x3cbr\x3e");
 };
 rureader.core.display_text = function rureader$core$display_text() {
