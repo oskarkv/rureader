@@ -62,6 +62,9 @@
   (str "https://www.google.se/search?q="
        (cstr/replace text #" +" "+") "&tbm=isch"))
 
+(defn reverso [word]
+  (str "http://context.reverso.net/translation/russian-english/" word))
+
 ;;; Does not work because gramota uses cp1251
 (defn gramota [word]
   (str "http://gramota.ru/slovari/dic/?word=" word "&all=x"))
@@ -97,9 +100,10 @@
     (set! (.-href (get-by-id "forvobaselink")) (forvo base-word))
     (set! (.-href (get-by-id "multitranlink")) (multitran word))
     (set! (.-href (get-by-id "multitranbaselink")) (multitran base-word))
-    (set! (.-href (get-by-id "lingvolink")) (lingvo base-word))
     (set! (.-href (get-by-id "ruwiktionarylink")) (wiktionary-ru base-word))
-    (set! (.-href (get-by-id "imageslink")) (image-search-url base-word))))
+    (set! (.-href (get-by-id "imageslink")) (image-search-url base-word))
+    (set! (.-href (get-by-id "reversobaselink")) (reverso base-word))
+    (set! (.-href (get-by-id "reversolink")) (reverso word))))
 
 (defn prepare [text]
   (-> text
