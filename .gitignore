@@ -1,0 +1,22 @@
+# Got these from lein
+/lib
+/classes
+/checkouts
+pom.xml
+pom.xml.asc
+*.jar
+*.class
+.lein-deps-sum
+.lein-failures
+.lein-plugins
+.lein-repl-history
+.nrepl-port
+*.dll
+
+# Cljs
+.repl*
+.cljs_rhino_repl
+
+# Developers' own profiles
+/dev
+profiles.clj
