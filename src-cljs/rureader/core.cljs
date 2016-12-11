@@ -101,6 +101,7 @@
     (set! (.-href (get-by-id "multitranlink")) (multitran word))
     (set! (.-href (get-by-id "multitranbaselink")) (multitran base-word))
     (set! (.-href (get-by-id "ruwiktionarylink")) (wiktionary-ru base-word))
+    (set! (.-href (get-by-id "lingvolink")) (lingvo base-word))
     (set! (.-href (get-by-id "imageslink")) (image-search-url base-word))
     (set! (.-href (get-by-id "reversobaselink")) (reverso base-word))
     (set! (.-href (get-by-id "reversolink")) (reverso word))))
