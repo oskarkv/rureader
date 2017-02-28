@@ -36469,24 +36469,24 @@ rureader.core.yan_get = function rureader$core$yan_get(word, ru_QMARK_) {
   return cognitect.transit.read.call(null, rureader.core.json_reader, req.responseText);
 };
 rureader.core.get_base_word = function rureader$core$get_base_word(yan_map) {
-  return cljs.core.get_in.call(null, yan_map, new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, ["def", 0, "text"], null));
+  return clojure.string.replace.call(null, cljs.core.get_in.call(null, yan_map, new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, ["def", 0, "text"], null)), " ", "-");
 };
 rureader.core.get_translations = function rureader$core$get_translations(var_args) {
-  var args12167 = [];
-  var len__7651__auto___12170 = arguments.length;
-  var i__7652__auto___12171 = 0;
+  var args9071 = [];
+  var len__7651__auto___9074 = arguments.length;
+  var i__7652__auto___9075 = 0;
   while (true) {
-    if (i__7652__auto___12171 < len__7651__auto___12170) {
-      args12167.push(arguments[i__7652__auto___12171]);
-      var G__12172 = i__7652__auto___12171 + 1;
-      i__7652__auto___12171 = G__12172;
+    if (i__7652__auto___9075 < len__7651__auto___9074) {
+      args9071.push(arguments[i__7652__auto___9075]);
+      var G__9076 = i__7652__auto___9075 + 1;
+      i__7652__auto___9075 = G__9076;
       continue;
     } else {
     }
     break;
   }
-  var G__12169 = args12167.length;
-  switch(G__12169) {
+  var G__9073 = args9071.length;
+  switch(G__9073) {
     case 1:
       return rureader.core.get_translations.cljs$core$IFn$_invoke$arity$1(arguments[0]);
       break;
@@ -36494,20 +36494,20 @@ rureader.core.get_translations = function rureader$core$get_translations(var_arg
       return rureader.core.get_translations.cljs$core$IFn$_invoke$arity$2(arguments[0], arguments[1]);
       break;
     default:
-      throw new Error([cljs.core.str("Invalid arity: "), cljs.core.str(args12167.length)].join(""));;
+      throw new Error([cljs.core.str("Invalid arity: "), cljs.core.str(args9071.length)].join(""));;
   }
 };
 rureader.core.get_translations.cljs$core$IFn$_invoke$arity$1 = function(yan_map) {
   return rureader.core.get_translations.call(null, yan_map, false);
 };
 rureader.core.get_translations.cljs$core$IFn$_invoke$arity$2 = function(yan_map, ru_QMARK_) {
-  return function(p1__12166_SHARP_) {
-    return clojure.string.join.call(null, "; ", (cljs.core.truth_(ru_QMARK_) ? cljs.core.identity : cljs.core.reverse).call(null, p1__12166_SHARP_));
-  }.call(null, clojure.string.split.call(null, function(p1__12165_SHARP_) {
-    return [cljs.core.str(clojure.string.join.call(null, ", ", cljs.core.map.call(null, new cljs.core.Keyword(null, "word", "word", -420123725), p1__12165_SHARP_))), cljs.core.str("; "), cljs.core.str(clojure.string.join.call(null, ", ", cljs.core.mapcat.call(null, new cljs.core.Keyword(null, "trans", "trans", -1318503851), p1__12165_SHARP_)))].join("");
+  return function(p1__9070_SHARP_) {
+    return clojure.string.join.call(null, "; ", (cljs.core.truth_(ru_QMARK_) ? cljs.core.identity : cljs.core.reverse).call(null, p1__9070_SHARP_));
+  }.call(null, clojure.string.split.call(null, function(p1__9069_SHARP_) {
+    return [cljs.core.str(clojure.string.join.call(null, ", ", cljs.core.map.call(null, new cljs.core.Keyword(null, "word", "word", -420123725), p1__9069_SHARP_))), cljs.core.str("; "), cljs.core.str(clojure.string.join.call(null, ", ", cljs.core.mapcat.call(null, new cljs.core.Keyword(null, "trans", "trans", -1318503851), p1__9069_SHARP_)))].join("");
   }.call(null, cljs.core.mapv.call(null, function(m) {
-    return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "word", "word", -420123725), m.call(null, "text"), new cljs.core.Keyword(null, "trans", "trans", -1318503851), cljs.core.mapv.call(null, function(p1__12164_SHARP_) {
-      return p1__12164_SHARP_.call(null, "text");
+    return new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null, "word", "word", -420123725), m.call(null, "text"), new cljs.core.Keyword(null, "trans", "trans", -1318503851), cljs.core.mapv.call(null, function(p1__9068_SHARP_) {
+      return p1__9068_SHARP_.call(null, "text");
     }, m.call(null, "tr"))], null);
   }, yan_map.call(null, "def"))), /; /));
 };
@@ -36573,10 +36573,10 @@ rureader.core.lookup_word = function rureader$core$lookup_word(word, ru_QMARK_) 
   return rureader.core.get_by_id.call(null, "reversolink").href = rureader.core.reverso.call(null, word);
 };
 rureader.core.prepare = function rureader$core$prepare(text) {
-  return clojure.string.replace.call(null, clojure.string.replace.call(null, clojure.string.replace.call(null, text, /[a-zA-Z]+/, function(p1__12174_SHARP_) {
-    return rureader.core.wrap_word.call(null, p1__12174_SHARP_, false);
-  }), /[а-яА-ЯЁё][а-яА-ЯЁё-]*/, function(p1__12175_SHARP_) {
-    return rureader.core.wrap_word.call(null, p1__12175_SHARP_, true);
+  return clojure.string.replace.call(null, clojure.string.replace.call(null, clojure.string.replace.call(null, text, /[a-zA-Z]+/, function(p1__9078_SHARP_) {
+    return rureader.core.wrap_word.call(null, p1__9078_SHARP_, false);
+  }), /[а-яА-ЯЁё][а-яА-ЯЁё-]*/, function(p1__9079_SHARP_) {
+    return rureader.core.wrap_word.call(null, p1__9079_SHARP_, true);
   }), /\n\n+/, "\x3cbr\x3e\x3cbr\x3e");
 };
 rureader.core.display_text = function rureader$core$display_text() {

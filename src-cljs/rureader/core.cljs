@@ -25,7 +25,10 @@
     (tran/read json-reader (.-responseText req))))
 
 (defn get-base-word [yan-map]
-  (get-in yan-map ["def" 0 "text"]))
+  ;; In the yandex map, dashes are replaced by spaces, for some reason, so
+  ;; relace spaces with dashes, because we could never have clicked a word
+  ;; with a space in it.
+  (cstr/replace (get-in yan-map ["def" 0 "text"]) " " "-"))
 
 (defn get-translations
   ([yan-map] (get-translations yan-map false))
