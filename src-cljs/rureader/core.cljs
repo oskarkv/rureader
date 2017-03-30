@@ -84,8 +84,8 @@
   (str "http://gramota.ru/slovari/dic/?word=" word "&all=x"))
 
 (defn wrap-word [word ru?]
-  (str "<span id=\"word\" 
-        onClick=\"rureader.core.lookup_word(this.innerHTML, " ru? ")\">"
+  (str "<span id=\"word\""
+        " onClick=\"rureader.core.lookup_word(this.innerHTML, " ru? ")\">"
        word "</span>"))
 
 (defn update-saved-words []
@@ -124,7 +124,8 @@
   (-> text
       (cstr/replace #"[a-zA-Z]+" #(wrap-word % false))
       (cstr/replace #"[а-яА-ЯЁё][а-яА-ЯЁё-]*" #(wrap-word % true))
-      (cstr/replace #"\n\n+" "<br><br>")))
+      (cstr/replace #"\n\n+" "<br><br>")
+      (cstr/replace #"\n" "<br>")))
 
 (defn display-text []
   (let [text (-> (get-by-id "inputbox") .-value prepare)]
