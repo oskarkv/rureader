@@ -7,9 +7,6 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 <link href='http://fonts.googleapis.com/css?family=Droid+Serif' rel='stylesheet' type='text/css'>
 <link href='http://fonts.googleapis.com/css?family=PT+Serif' rel='stylesheet' type='text/css'>
-<script>
-document.onload = rureader.core.load_api_key("YOUR YANDEX API KEY HERE");
-</script>
 </head>
 <body>
 <div id="leftside">
@@ -55,5 +52,8 @@ document.onload = rureader.core.load_api_key("YOUR YANDEX API KEY HERE");
 <section id="rightside">
     <iframe id="dic2" src=""></iframe>
 </section>
+<script>
+window.onload = rureader.core.init_page("YOUR YANDEX API KEY HERE");
+</script>
 </body>
 </html>

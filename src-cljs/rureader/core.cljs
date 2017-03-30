@@ -1,6 +1,7 @@
 (ns rureader.core
   (:require [clojure.string :as cstr]
-            [cognitect.transit :as tran])
+            [cognitect.transit :as tran]
+            [cemerick.url :as url])
   (:require-macros [clojure.core :as cm]))
 
 (declare api-key)
@@ -15,12 +16,22 @@
 (defn load-api-key [akey]
   (def api-key akey))
 
+(defn init-page [akey]
+  (load-api-key akey)
+  (enable-console-print!)
+  (set! (.-value (get-by-id "inputbox"))
+        (-> (-> js/window .-location .-href)
+            url/url
+            :query
+            (get "text")))
+  (display-text))
+
 (defn yan-get [word ru?]
-  (let [req (js/XMLHttpRequest.)]
-    (.open req "GET"
-           (str "https://dictionary.yandex.net/api/v1/dicservice.json/lookup"
+  (let [req (js/XMLHttpRequest.)
+        s (str "https://dictionary.yandex.net/api/v1/dicservice.json/lookup"
                 "?key=" api-key "&lang=" (if ru? "ru-en" "en-ru") "&text=" word
-                "&flags=4") false)
+                "&flags=4")]
+    (.open req "GET" s false)
     (.send req)
     (tran/read json-reader (.-responseText req))))
 
