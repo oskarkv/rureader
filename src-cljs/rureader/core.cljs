@@ -16,16 +16,6 @@
 (defn load-api-key [akey]
   (def api-key akey))
 
-(defn init-page [akey]
-  (load-api-key akey)
-  (enable-console-print!)
-  (set! (.-value (get-by-id "inputbox"))
-        (-> (-> js/window .-location .-href)
-            url/url
-            :query
-            (get "text")))
-  (display-text))
-
 (defn yan-get [word ru?]
   (let [req (js/XMLHttpRequest.)
         s (str "https://dictionary.yandex.net/api/v1/dicservice.json/lookup"
@@ -133,3 +123,16 @@
 
 (defn scroll [n frame]
   (-> frame .contentWindow (.scrollTo 20 20)))
+
+(defn init-page [akey]
+  (load-api-key akey)
+  (enable-console-print!)
+  (let [q (-> (-> js/window .-location .-href)
+            url/url
+            :query
+            (get "text"))]
+    (set! (.-value (get-by-id "inputbox"))
+          q)
+    (display-text)
+    (when q
+      (lookup-word q true))))
