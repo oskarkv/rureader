@@ -29,7 +29,9 @@
   ;; In the yandex map, dashes are replaced by spaces, for some reason, so
   ;; relace spaces with dashes, because we could never have clicked a word
   ;; with a space in it.
-  (cstr/replace (get-in yan-map ["def" 0 "text"]) " " "-"))
+  (let [word (get-in yan-map ["def" 0 "text"])]
+    (when word
+      (cstr/replace word " " "-"))))
 
 (defn get-translations
   ([yan-map] (get-translations yan-map false))
@@ -94,7 +96,7 @@
 (defn lookup-word [word ru?]
   (set! (.-src (get-by-id "dic1")) (yandex word))
   (let [yan-map (yan-get word ru?)
-        base-word (get-base-word yan-map)
+        base-word (or (get-base-word yan-map) word)
         trans (get-translations yan-map ru?)
         _ (reset! cword base-word)
         _ (reset! ctrans trans)
