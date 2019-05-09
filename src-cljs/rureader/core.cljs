@@ -33,6 +33,7 @@
     (when word
       (cstr/replace word " " "-"))))
 
+
 (defn get-translations
   ([yan-map] (get-translations yan-map false))
   ([yan-map ru?]
@@ -94,8 +95,9 @@
         (if bool "block" "none")))
 
 (defn lookup-word [word ru?]
-  (set! (.-src (get-by-id "dic1")) (yandex word))
+  (set! (.-src (get-by-id "dic1")) (reverso word))
   (let [yan-map (yan-get word ru?)
+        _ (println yan-map)
         base-word (or (get-base-word yan-map) word)
         trans (get-translations yan-map ru?)
         _ (reset! cword base-word)
