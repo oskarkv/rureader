@@ -1,8 +1,8 @@
 (defproject rureader "0.1.0"
   :plugins [[lein-cljsbuild "1.1.5"]]
-  :dependencies [[org.clojure/clojurescript "1.9.293"]
-                 [org.clojure/clojure "1.8.0"]
-                 [com.cognitect/transit-cljs "0.8.239"]
+  :dependencies [[org.clojure/clojurescript "1.10.520"]
+                 [org.clojure/clojure "1.10.0"]
+                 [com.cognitect/transit-cljs "0.8.256"]
                  [com.cemerick/url "0.1.1"]]
   :source-paths ["src-cljs"]
   :cljsbuild {:builds
